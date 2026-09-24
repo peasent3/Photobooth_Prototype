@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Photobooth</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family: Arial, sans-serif;
+
+            background: #111;
+
+            color: white;
+
+            min-height: 100vh;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+        }
+
+
+        .container {
+
+            width: 90%;
+
+            max-width: 900px;
+
+            text-align: center;
+        }
+
+
+        h1 {
+
+            font-size: 48px;
+
+            margin-bottom: 25px;
+        }
+
+
+        .camera-container {
+
+            width: 100%;
+
+            background: #000;
+
+            border-radius: 15px;
+
+            overflow: hidden;
+
+            margin-bottom: 25px;
+
+            border: 3px solid #333;
+        }
+
+
+        #liveview {
+
+            display: block;
+
+            width: 100%;
+
+            height: auto;
+
+            min-height: 400px;
+
+            object-fit: contain;
+
+            background: #000;
+        }
+
+
+        .controls {
+
+            display: flex;
+
+            gap: 15px;
+
+            justify-content: center;
+
+            flex-wrap: wrap;
+        }
+
+
+        button {
+
+            padding: 20px 35px;
+
+            font-size: 22px;
+
+            font-weight: bold;
+
+            border: none;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            color: white;
+        }
+
+
+        #connectButton {
+
+            background: #2ecc71;
+        }
+
+
+        #takePhotoButton {
+
+            background: #3498db;
+        }
+
+
+        #disconnectButton {
+
+            background: #e74c3c;
+        }
+
+
+        button:disabled {
+
+            background: #555;
+
+            cursor: not-allowed;
+
+            opacity: 0.6;
+        }
+
+
+        #status {
+
+            margin-top: 25px;
+
+            font-size: 20px;
+
+            min-height: 30px;
+        }
+
+
+        .camera-off {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            height: 400px;
+
+            color: #777;
+
+            font-size: 24px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <h1>📸 PHOTOBOOTH</h1>
+
+
+    <div class="camera-container">
+
+        <div id="cameraOff"
+             class="camera-off">
+
+            Camera disconnected
+
+        </div>
+
+        <img id="liveview"
+             src=""
+             style="display: none;">
+
+    </div>
+
+
+    <div class="controls">
+
+        <button id="connectButton">
+            CONNECT CAMERA
+        </button>
+
+
+        <button id="takePhotoButton"
+                disabled>
+
+            TAKE PHOTO
+
+        </button>
+
+
+        <button id="disconnectButton"
+                disabled>
+
+            DISCONNECT
+
+        </button>
+
+    </div>
+
+
+    <div id="status">
+
+        Camera disconnected
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+const connectButton =
+    document.getElementById("connectButton");
+
+
+const takePhotoButton =
+    document.getElementById("takePhotoButton");
+
+
+const disconnectButton =
+    document.getElementById("disconnectButton");
+
+
+const status =
+    document.getElementById("status");
+
+
+const liveview =
+    document.getElementById("liveview");
+
+
+const cameraOff =
+    document.getElementById("cameraOff");
+
+
+
+connectButton.addEventListener(
+    "click",
+    async () => {
+
+        status.textContent =
+            "Connecting to camera...";
+
+
+        connectButton.disabled = true;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/connect",
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (data.success) {
+
+                status.textContent =
+                    data.message;
+
+
+                takePhotoButton.disabled =
+                    false;
+
+
+                disconnectButton.disabled =
+                    false;
+
+
+                liveview.src =
+                    "/liveview";
+
+
+                liveview.style.display =
+                    "block";
+
+
+                cameraOff.style.display =
+                    "none";
+
+
+            } else {
+
+                status.textContent =
+                    "Error: " +
+                    data.message;
+
+
+                connectButton.disabled =
+                    false;
+
+            }
+
+
+        } catch (error) {
+
+            status.textContent =
+                "Connection error: " +
+                error;
+
+
+            connectButton.disabled =
+                false;
+
+        }
+
+    }
+);
+
+
+
+takePhotoButton.addEventListener(
+    "click",
+    async () => {
+
+        status.textContent =
+            "📸 Taking photo...";
+
+
+        takePhotoButton.disabled =
+            true;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/take-photo",
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (data.success) {
+
+                status.textContent =
+                    "Photo saved: " +
+                    data.filename;
+
+            } else {
+
+                status.textContent =
+                    "Error: " +
+                    data.message;
+
+            }
+
+
+        } catch (error) {
+
+            status.textContent =
+                "Photo error: " +
+                error;
+
+        }
+
+
+        takePhotoButton.disabled =
+            false;
+
+    }
+);
+
+
+
+disconnectButton.addEventListener(
+    "click",
+    async () => {
+
+        status.textContent =
+            "Disconnecting...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/disconnect",
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            status.textContent =
+                data.message;
+
+
+            connectButton.disabled =
+                false;
+
+
+            takePhotoButton.disabled =
+                true;
+
+
+            disconnectButton.disabled =
+                true;
+
+
+            liveview.src = "";
+
+
+            liveview.style.display =
+                "none";
+
+
+            cameraOff.style.display =
+                "flex";
+
+
+        } catch (error) {
+
+            status.textContent =
+                "Disconnect error: " +
+                error;
+
+        }
+
+    }
+);
+
+
+</script>
+
+
+</body>
+
+</html>

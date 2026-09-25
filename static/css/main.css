@@ -1,0 +1,53 @@
+/* --------------------------------------------------------------
+   main.css – custom overrides for the photobooth UI
+   -------------------------------------------------------------- */
+
+/* Soft colour palette – you can adjust to match your brand */
+:root {
+    --brand-primary: #4a90e2;   /* a pleasant blue */
+    --brand-success: #28a745;   /* green */
+    --brand-danger:  #dc3545;   /* red */
+    --bg-card: #ffffff;
+}
+
+/* Card background & subtle shadow */
+.card {
+    background: var(--bg-card);
+    border: none;
+}
+
+/* Larger click‑area for mobile */
+button {
+    min-height: 3rem;
+    font-size: 1.1rem;
+}
+
+/* Countdown overlay animation */
+@keyframes countdownPulse {
+    0%   { transform: scale(1); opacity: 0.8; }
+    50%  { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+#countdownOverlay {
+    animation: countdownPulse 1s infinite;
+}
+
+/* Toast style – a little more vertical spacing */
+.toast {
+    margin-bottom: .5rem;
+}
+
+/* Make the live‑view image round‑cornered */
+#liveViewImg {
+    border-radius: .5rem;
+}
+
+/* When the page is in “connected” state give the live view a green glow */
+.connected #liveViewImg {
+    box-shadow: 0 0 10px 3px rgba(72, 180, 97, 0.5);
+}
+
+/* Adjust the progress bar transition for smoother updates */
+.progress-bar {
+    transition: width 0.4s ease;
+}

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photobooth</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container { width: 90%; max-width: 900px; text-align: center; }
+
+        h1 { font-size: 48px; margin-bottom: 25px; }
+
+        .camera-container {
+            width: 100%;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            border: 3px solid #333;
+            position: relative;               /* <-- for the overlay */
+        }
+
+        #liveview, #collageImg {
+            display: block;
+            width: 100%;
+            height: auto;
+            min-height: 400px;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 20px 35px;
+            font-size: 22px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+        }
+
+        #connectButton   { background:#2ecc71; }
+        #startButton     { background:#8e44ad; }      /* New colour */
+        #takePhotoButton { background:#3498db; }
+        #disconnectButton{ background:#e74c3c; }
+
+        button:disabled {
+            background:#555;
+            cursor:not-allowed;
+            opacity:0.6;
+        }
+
+        #status {
+            margin-top: 25px;
+            font-size: 20px;
+            min-height: 30px;
+        }
+
+        .camera-off {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+            color: #777;
+            font-size: 24px;
+        }
+
+        /* ---------------------------------------------------------
+           Countdown overlay (big numbers in the centre)
+           --------------------------------------------------------- */
+        #countdownOverlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.65);
+            color:#fff;
+            font-size:5rem;
+            display:none;
+            align-items:center;
+            justify-content:center;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <h1>📸 PHOTOBOOTH</h1>
+
+    <div class="camera-container">
+        <div id="cameraOff" class="camera-off">Camera disconnected</div>
+        <img id="liveview" src="" style="display:none;">
+        <!-- Collage image – hidden until the session finishes -->
+        <img id="collageImg" src="" style="display:none;">
+        <!-- Countdown numbers – appear over the live view -->
+        <div id="countdownOverlay">3</div>
+    </div>
+
+    <div class="controls">
+        <button id="connectButton">CONNECT CAMERA</button>
+
+        <!-- NEW: Start Session button (enabled after connection) -->
+        <button id="startButton" disabled>START SESSION</button>
+
+        <!-- Existing manual buttons – kept for debugging / optional use -->
+        <button id="takePhotoButton" disabled>TAKE PHOTO</button>
+        <button id="disconnectButton" disabled>DISCONNECT</button>
+    </div>
+
+    <div id="status">Camera disconnected</div>
+</div>
+
+<script>
+/* --------------------------------------------------------------
+   Grab UI elements
+   -------------------------------------------------------------- */
+const connectButton    = document.getElementById("connectButton");
+const startButton      = document.getElementById("startButton");
+const takePhotoButton  = document.getElementById("takePhotoButton");
+const disconnectButton = document.getElementById("disconnectButton");
+const status           = document.getElementById("status");
+const liveview         = document.getElementById("liveview");
+const collageImg       = document.getElementById("collageImg");
+const cameraOff        = document.getElementById("cameraOff");
+const countdownOverlay = document.getElementById("countdownOverlay");
+
+/* --------------------------------------------------------------
+   CONNECT
+   -------------------------------------------------------------- */
+connectButton.addEventListener("click", async () => {
+    status.textContent = "Connecting to camera...";
+    connectButton.disabled = true;
+
+    try {
+        const resp = await fetch("/connect", {method:"POST"});
+        const data = await resp.json();
+
+        if (data.success) {
+            status.textContent = data.message;
+            startButton.disabled = false;          // now we can start a session
+            takePhotoButton.disabled = false;      // optional manual button
+            disconnectButton.disabled = false;
+
+            liveview.src = "/liveview";
+            liveview.style.display = "block";
+            cameraOff.style.display = "none";
+        } else {
+            status.textContent = "Error: " + data.message;
+            connectButton.disabled = false;
+        }
+    } catch (e) {
+        status.textContent = "Connection error: " + e;
+        connectButton.disabled = false;
+    }
+});
+
+/* --------------------------------------------------------------
+   SHOW COUNTDOWN (3‑2‑1) – returns a Promise that resolves when
+   the countdown finishes.
+   -------------------------------------------------------------- */
+function showCountdown(seconds = 3) {
+    return new Promise(resolve => {
+        let count = seconds;
+        countdownOverlay.textContent = count;
+        countdownOverlay.style.display = "flex";
+
+        const interval = setInterval(() => {
+            count--;
+            if (count === 0) {
+                clearInterval(interval);
+                countdownOverlay.style.display = "none";
+                resolve();
+            } else {
+                countdownOverlay.textContent = count;
+            }
+        }, 1000);
+    });
+}
+
+/* --------------------------------------------------------------
+   START SESSION – takes 4 pictures with a visual countdown,
+   then asks the server to build the collage and finally shows it.
+   -------------------------------------------------------------- */
+startButton.addEventListener("click", async () => {
+    status.textContent = "Starting 4‑photo session…";
+    startButton.disabled = true;       // prevent a second click
+    takePhotoButton.disabled = true;   // optional – keep UI tidy
+    disconnectButton.disabled = true;
+
+    // 1️⃣ Tell the back‑end to begin a fresh session (clears old data)
+    try {
+        const initResp = await fetch("/start-session", {method:"POST"});
+        const initData = await initResp.json();
+        if (!initData.success) throw new Error(initData.message);
+    } catch (e) {
+        status.textContent = "Session start error: " + e;
+        startButton.disabled = false;
+        disconnectButton.disabled = false;
+        return;
+    }
+
+    // 2️⃣ Capture the four pictures, one after the other
+    for (let i = 0; i < 4; i++) {
+        await showCountdown(3);               // visual 3‑2‑1
+
+        try {
+            const resp = await fetch("/take-photo", {method:"POST"});
+            const data = await resp.json();
+
+            if (data.success) {
+                status.textContent = `Photo ${i+1} saved: ${data.filename}`;
+            } else {
+                status.textContent = "Error: " + data.message;
+                // If a capture fails we abort the session early
+                throw new Error(data.message);
+            }
+        } catch (e) {
+            status.textContent = "Capture error: " + e;
+            startButton.disabled = false;
+            disconnectButton.disabled = false;
+            return;
+        }
+    }
+
+    // 3️⃣ Ask the server to build the collage from the four just‑taken photos
+    try {
+        const resp = await fetch("/make-collage", {method:"POST"});
+        const data = await resp.json();
+
+        if (!data.success) throw new Error(data.message);
+
+        // ---------------------------------------------------------
+        // SHOW THE COLLAGE
+        // ---------------------------------------------------------
+        liveview.style.display = "none";
+        collageImg.src = "/collage-image?" + Date.now(); // cache‑bust
+        collageImg.style.display = "block";
+        status.textContent = "Collage ready!";
+
+        // Show the collage for a few seconds, then go back to the main UI
+        setTimeout(() => {
+            collageImg.style.display = "none";
+            liveview.style.display = "block";
+            status.textContent = "Ready for another session";
+            startButton.disabled = false;
+            disconnectButton.disabled = false;
+        }, 8000);   // 8 seconds – adjust as you like
+    } catch (e) {
+        status.textContent = "Collage error: " + e;
+        startButton.disabled = false;
+        disconnectButton.disabled = false;
+    }
+});
+
+/* --------------------------------------------------------------
+   TAKE PHOTO (manual – optional)
+   -------------------------------------------------------------- */
+takePhotoButton.addEventListener("click", async () => {
+    status.textContent = "📸 Taking photo...";
+    takePhotoButton.disabled = true;
+
+    try {
+        const resp = await fetch("/take-photo", {method:"POST"});
+        const data = await resp.json();
+
+        if (data.success) {
+            status.textContent = "Photo saved: " + data.filename;
+        } else {
+            status.textContent = "Error: " + data.message;
+        }
+    } catch (e) {
+        status.textContent = "Photo error: " + e;
+    }
+
+    takePhotoButton.disabled = false;
+});
+
+/* --------------------------------------------------------------
+   DISCONNECT
+   -------------------------------------------------------------- */
+disconnectButton.addEventListener("click", async () => {
+    status.textContent = "Disconnecting...";
+
+    try {
+        const resp = await fetch("/disconnect", {method:"POST"});
+        const data = await resp.json();
+
+        status.textContent = data.message;
+
+        // Reset UI to its initial state
+        connectButton.disabled = false;
+        startButton.disabled = true;
+        takePhotoButton.disabled = true;
+        disconnectButton.disabled = true;
+
+        liveview.src = "";
+        liveview.style.display = "none";
+        collageImg.style.display = "none";
+        cameraOff.style.display = "flex";
+    } catch (e) {
+        status.textContent = "Disconnect error: " + e;
+    }
+});
+</script>
+</body>
+</html>

@@ -1,50 +1,43 @@
-# --------------------------------------------------------------
-# app.py  – original UI + new “session” logic
-# --------------------------------------------------------------
 from flask import Flask, render_template, jsonify, Response, send_file
 import time
 from pathlib import Path
 
-# ---------- ORIGINAL IMPORT ----------
 from camera import A7CII
+from collage import make_collage
+from printer import print_file
 
-# ---------- NEW IMPORT ----------
-from collage import make_collage               # helper that builds the collage
 
 app = Flask(__name__)
 
-# ------------------------------------------------------------------
-# GLOBAL CAMERA INSTANCE (unchanged)
-# ------------------------------------------------------------------
-camera = A7CII()          # uses the fixed __init__ in camera.py
+camera = A7CII()
 
-# ------------------------------------------------------------------
-# SESSION STATE – stores the four freshly‑taken pictures
-# ------------------------------------------------------------------
-session_active = False          # True while a session is running
-session_photos: list[Path] = [] # Paths of the four pictures taken in the session
+session_active = False
+session_photos: list[Path] = []
+
+# Stores the most recently created collage
+latest_collage = None
 
 
-# --------------------------------------------------------------
-# HOME PAGE
-# --------------------------------------------------------------
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-# --------------------------------------------------------------
-# CONNECT
-# --------------------------------------------------------------
+# ============================================================
+# CAMERA
+# ============================================================
+
 @app.route("/connect", methods=["POST"])
 def connect_camera():
     try:
         camera.connect()
         camera.start_liveview()
+
         return jsonify({
             "success": True,
             "message": "Camera connected successfully."
         })
+
     except Exception as error:
         return jsonify({
             "success": False,
@@ -52,114 +45,16 @@ def connect_camera():
         }), 500
 
 
-# --------------------------------------------------------------
-# START SESSION  – resets the session list and enables picture capture
-# --------------------------------------------------------------
-@app.route("/start-session", methods=["POST"])
-def start_session():
-    """
-    Called once when the user presses the **Start Session** button.
-    It clears any previous session data and tells the server that the
-    next four `/take-photo` calls belong to a new session.
-    """
-    global session_active, session_photos
-    session_active = True
-    session_photos = []            # empty list – will be filled by take‑photo
-    return jsonify({"success": True, "message": "Session started."})
-
-
-# --------------------------------------------------------------
-# TAKE PHOTO  – unchanged, but now also tracks session pictures
-# --------------------------------------------------------------
-@app.route("/take-photo", methods=["POST"])
-def take_photo():
-    """
-    Capture a single picture.
-    If a session is active, the path of this picture is stored so that
-    a collage can later be built from exactly the four pictures taken
-    during this session.
-    """
-    global session_active, session_photos
-    try:
-        filepath = camera.take_picture()
-
-        # -----------------------------------------------------------------
-        # If we are currently inside a “session”, remember the picture.
-        # -----------------------------------------------------------------
-        if session_active:
-            session_photos.append(filepath)
-            # When the fourth picture is captured we *do not* build the collage
-            # here – the front‑end will explicitly request it via /make-collage.
-            # This keeps the UI free to show the 3‑2‑1 countdown.
-        return jsonify({
-            "success": True,
-            "message": "Photo taken successfully.",
-            "filename": filepath.name
-        })
-    except Exception as error:
-        return jsonify({
-            "success": False,
-            "message": str(error)
-        }), 500
-
-
-# --------------------------------------------------------------
-# MAKE COLLAGE  – builds a collage from the four pictures captured
-#                 during the current session.
-# --------------------------------------------------------------
-@app.route("/make-collage", methods=["POST"])
-def make_collage_route():
-    """
-    After the fourth picture of a session has been taken this endpoint
-    creates the 4 × 6″ collage from **exactly those four images**,
-    stores the collage path in ``app.config["LATEST_COLLAGE"]`` and
-    returns the collage filename.
-    """
-    global session_active, session_photos
-
-    if not session_active:
-        return jsonify({
-            "success": False,
-            "message": "No active session."
-        }), 400
-
-    if len(session_photos) != 4:
-        return jsonify({
-            "success": False,
-            "message": f"Need exactly 4 photos, have {len(session_photos)}."
-        }), 400
-
-    try:
-        collage_path = make_collage(session_photos)   # <-- collage.py does the work
-        # Reset session state – a new session will need a fresh list.
-        session_active = False
-        session_photos = []
-
-        # Store the collage so other routes (e.g., a Print button) can use it.
-        app.config["LATEST_COLLAGE"] = collage_path
-        return jsonify({
-            "success": True,
-            "message": "Collage created.",
-            "collage": collage_path.name
-        })
-    except Exception as exc:
-        return jsonify({
-            "success": False,
-            "message": str(exc)
-        }), 500
-
-
-# --------------------------------------------------------------
-# DISCONNECT
-# --------------------------------------------------------------
 @app.route("/disconnect", methods=["POST"])
 def disconnect_camera():
     try:
         camera.disconnect()
+
         return jsonify({
             "success": True,
             "message": "Camera disconnected."
         })
+
     except Exception as error:
         return jsonify({
             "success": False,
@@ -167,25 +62,31 @@ def disconnect_camera():
         }), 500
 
 
-# --------------------------------------------------------------
-# LIVE VIEW (MJPEG stream) – unchanged
-# --------------------------------------------------------------
+# ============================================================
+# LIVE VIEW
+# ============================================================
+
 @app.route("/liveview")
 def liveview():
-    """
-    Streams JPEG frames from the camera as a multipart MJPEG response.
-    The <img> tag in index.html points to this endpoint.
-    """
+
     def generate():
+
         while True:
+
             frame = camera.get_liveview_frame()
+
             if frame is not None:
+
                 yield (
                     b"--frame\r\n"
                     b"Content-Type: image/jpeg\r\n"
-                    b"Content-Length: " + str(len(frame)).encode() + b"\r\n\r\n"
-                    + frame + b"\r\n"
+                    b"Content-Length: "
+                    + str(len(frame)).encode()
+                    + b"\r\n\r\n"
+                    + frame
+                    + b"\r\n"
                 )
+
             else:
                 time.sleep(0.05)
 
@@ -195,33 +96,220 @@ def liveview():
     )
 
 
-# --------------------------------------------------------------
-# SERVE THE LAST COLLAGE IMAGE (so the browser can display it)
-# --------------------------------------------------------------
-@app.route("/collage-image")
-def collage_image():
-    """
-    Returns the most‑recent collage file (generated by /make-collage)
-    as a JPEG image.  Used by the front‑end to show the final picture.
-    """
-    collage_path = app.config.get("LATEST_COLLAGE")
-    if not collage_path or not Path(collage_path).exists():
-        return "", 404
-    return send_file(collage_path, mimetype="image/jpeg")
+# ============================================================
+# PHOTO SESSION
+# ============================================================
+
+@app.route("/start-session", methods=["POST"])
+def start_session():
+
+    global session_active
+    global session_photos
+
+    session_active = True
+    session_photos = []
+
+    return jsonify({
+        "success": True,
+        "message": "Session started."
+    })
 
 
-# --------------------------------------------------------------
-# OPTIONAL: expose collage status (useful for a separate Print button)
-# --------------------------------------------------------------
+@app.route("/take-photo", methods=["POST"])
+def take_photo():
+
+    global session_photos
+
+    try:
+
+        filepath = camera.take_picture()
+
+        if session_active:
+            session_photos.append(filepath)
+
+        return jsonify({
+            "success": True,
+            "message": "Photo taken successfully.",
+            "filename": filepath.name
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
+
+# ============================================================
+# COLLAGE
+# ============================================================
+
+@app.route("/make-collage", methods=["POST"])
+def make_collage_route():
+
+    global session_active
+    global session_photos
+    global latest_collage
+
+    if not session_active:
+
+        return jsonify({
+            "success": False,
+            "message": "No active session."
+        }), 400
+
+    if len(session_photos) != 4:
+
+        return jsonify({
+            "success": False,
+            "message": (
+                f"Need exactly 4 photos, "
+                f"have {len(session_photos)}."
+            )
+        }), 400
+
+    try:
+
+        print("Creating 4-photo collage...")
+
+        collage_path = make_collage(session_photos)
+
+        latest_collage = Path(collage_path)
+
+        session_active = False
+        session_photos = []
+
+        print(f"Collage created: {latest_collage}")
+
+        return jsonify({
+            "success": True,
+            "message": "Collage created.",
+            "collage": latest_collage.name
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
+
+# ============================================================
+# LAST COLLAGE / PREVIEW
+# ============================================================
+
 @app.route("/collage-status")
 def collage_status():
-    ready = "LATEST_COLLAGE" in app.config and Path(app.config["LATEST_COLLAGE"]).exists()
-    return jsonify(ready=ready)
+
+    ready = (
+        latest_collage is not None
+        and latest_collage.exists()
+    )
+
+    return jsonify({
+        "ready": ready
+    })
 
 
-# --------------------------------------------------------------
-# RUN THE SERVER
-# --------------------------------------------------------------
+@app.route("/collage-image")
+def collage_image():
+
+    if latest_collage is None:
+        return "", 404
+
+    if not latest_collage.exists():
+        return "", 404
+
+    return send_file(
+        latest_collage,
+        mimetype="image/jpeg"
+    )
+
+
+# This route is specifically for the
+# "Preview Last Collage" button.
+@app.route("/preview-last-collage")
+def preview_last_collage():
+
+    if latest_collage is None:
+        return jsonify({
+            "success": False,
+            "message": "No collage has been created yet."
+        }), 404
+
+    if not latest_collage.exists():
+        return jsonify({
+            "success": False,
+            "message": "The last collage file no longer exists."
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "filename": latest_collage.name
+    })
+
+
+# ============================================================
+# PRINT
+# ============================================================
+
+@app.route("/print-collage", methods=["POST"])
+def print_collage():
+
+    if latest_collage is None:
+
+        return jsonify({
+            "success": False,
+            "message": "There is no collage to print."
+        }), 400
+
+    if not latest_collage.exists():
+
+        return jsonify({
+            "success": False,
+            "message": "The collage file could not be found."
+        }), 404
+
+    try:
+
+        print(f"Sending collage to printer: {latest_collage}")
+
+        print_file(latest_collage)
+
+        return jsonify({
+            "success": True,
+            "message": "Print job sent successfully."
+        })
+
+    except Exception as error:
+
+        print(f"Printing error: {error}")
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
+
+# ============================================================
+# START SERVER
+# ============================================================
+
 if __name__ == "__main__":
-    print("Starting Photobooth Web Server...")
-    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+
+    print("===================================")
+    print("     PHOTOBOOTH WEB SERVER")
+    print("===================================")
+    print()
+    print("Starting server...")
+    print("Open http://localhost:5000")
+    print()
+
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=False,
+        threaded=True
+    )

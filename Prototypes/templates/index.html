@@ -3,454 +3,342 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+```
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <title>Photobooth</title>
+<title>Photobooth</title>
 
+<style>
+    * {
+        box-sizing: border-box;
+    }
 
-    <style>
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+            radial-gradient(
+                circle at top,
+                #252525,
+                #111 60%
+            );
+        color: white;
+        font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
 
-        * {
-            box-sizing: border-box;
-        }
+    .container {
+        width: 100%;
+        max-width: 900px;
+        text-align: center;
+    }
 
+    h1 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 36px;
+        letter-spacing: 4px;
+    }
 
-        body {
+    /* ==================================================
+       CAMERA DISPLAY
+       ================================================== */
 
-            margin: 0;
+    .preview-container {
+        position: relative;
+        width: 100%;
+        background: black;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow:
+            0 10px 40px rgba(0, 0, 0, 0.5);
+    }
 
-            min-height: 100vh;
+    #liveview {
+        display: block;
+        width: 100%;
+        height: auto;
+        min-height: 400px;
+        object-fit: contain;
+        background: black;
+    }
 
-            background:
-                radial-gradient(
-                    circle at top,
-                    #252525,
-                    #111 60%
-                );
+    #collageImg {
+        display: none;
+        width: 100%;
+        height: auto;
+        background: white;
+    }
 
-            color: white;
+    #cameraOff {
+        display: none;
+        padding: 150px 20px;
+        color: #aaa;
+        font-size: 20px;
+    }
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+    /* ==================================================
+       COUNTDOWN
+       ================================================== */
 
-            display: flex;
-
-            justify-content: center;
-
-            align-items: center;
-
-            padding: 20px;
-        }
-
-
-        .container {
-
-            width: 100%;
-
-            max-width: 900px;
-
-            text-align: center;
-        }
-
-
-        h1 {
-
-            margin-top: 0;
-
-            margin-bottom: 20px;
-
-            font-size: 36px;
-
-            letter-spacing: 4px;
-        }
-
-
-        /* ==================================================
-           CAMERA DISPLAY
-           ================================================== */
-
-        .preview-container {
-
-            position: relative;
-
-            width: 100%;
-
-            background: black;
-
-            border-radius: 12px;
-
-            overflow: hidden;
-
-            box-shadow:
-                0 10px 40px rgba(0,0,0,0.5);
-        }
-
-
-        #liveview {
-
-            display: block;
-
-            width: 100%;
-
-            height: auto;
-
-            min-height: 400px;
-
-            object-fit: contain;
-
-            background: black;
-        }
-
-
-        #collageImg {
-
-            display: none;
-
-            width: 100%;
-
-            height: auto;
-
-            background: white;
-        }
-
-
-        #cameraOff {
-
-            display: none;
-
-            padding: 150px 20px;
-
-            color: #aaa;
-
-            font-size: 20px;
-        }
-
-
-        /* ==================================================
-           COUNTDOWN
-           ================================================== */
-
-        #countdownOverlay {
-
-            display: none;
-
-            position: absolute;
-
-            top: 50%;
-
-            left: 50%;
-
-            transform: translate(
+    #countdownOverlay {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform:
+            translate(
                 -50%,
                 -50%
             );
+        font-size: 150px;
+        font-weight: bold;
+        text-shadow:
+            0 0 20px black,
+            0 0 40px black;
+        z-index: 10;
+    }
 
-            font-size: 150px;
+    /* ==================================================
+       STATUS
+       ================================================== */
 
-            font-weight: bold;
+    #status {
+        margin-top: 15px;
+        min-height: 24px;
+        font-size: 18px;
+        color: #ccc;
+    }
 
-            text-shadow:
-                0 0 20px black,
-                0 0 40px black;
+    /* ==================================================
+       BUTTONS
+       ================================================== */
 
-            z-index: 10;
+    .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    button {
+        border: none;
+        border-radius: 8px;
+        padding: 15px 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        background: #333;
+        color: white;
+        transition:
+            transform 0.15s,
+            background 0.15s;
+    }
+
+    button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        background: #555;
+    }
+
+    button:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+
+    #connectBtn {
+        background: #1976d2;
+    }
+
+    #startBtn {
+        background: #2e7d32;
+    }
+
+    #takeBtn {
+        background: #6a1b9a;
+    }
+
+    #disconnectBtn {
+        background: #c62828;
+    }
+
+    #retakeBtn {
+        background: #ef6c00;
+        display: none;
+    }
+
+    #printBtn {
+        background: #00897b;
+        display: none;
+    }
+
+    #returnMenuBtn {
+        background: #455a64;
+        display: none;
+    }
+
+    #previewBtn {
+        background: #455a64;
+    }
+
+    /* ==================================================
+       COLLAGE MODE
+       ================================================== */
+
+    .collage-controls {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    /* ==================================================
+       MOBILE
+       ================================================== */
+
+    @media (max-width: 600px) {
+        h1 {
+            font-size: 25px;
+            letter-spacing: 2px;
         }
-
-
-        /* ==================================================
-           STATUS
-           ================================================== */
-
-        #status {
-
-            margin-top: 15px;
-
-            min-height: 24px;
-
-            font-size: 18px;
-
-            color: #ccc;
-        }
-
-
-        /* ==================================================
-           BUTTONS
-           ================================================== */
-
-        .buttons {
-
-            display: flex;
-
-            flex-wrap: wrap;
-
-            justify-content: center;
-
-            gap: 12px;
-
-            margin-top: 20px;
-        }
-
 
         button {
-
-            border: none;
-
-            border-radius: 8px;
-
-            padding: 15px 25px;
-
-            font-size: 16px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-
-            background: #333;
-
-            color: white;
-
-            transition:
-                transform 0.15s,
-                background 0.15s;
+            width: 100%;
         }
 
-
-        button:hover:not(:disabled) {
-
-            transform: translateY(-2px);
-
-            background: #555;
+        .buttons {
+            flex-direction: column;
         }
 
-
-        button:disabled {
-
-            opacity: 0.35;
-
-            cursor: not-allowed;
+        #countdownOverlay {
+            font-size: 100px;
         }
-
-
-        #connectBtn {
-
-            background: #1976d2;
-        }
-
-
-        #startBtn {
-
-            background: #2e7d32;
-        }
-
-
-        #takeBtn {
-
-            background: #6a1b9a;
-        }
-
-
-        #disconnectBtn {
-
-            background: #c62828;
-        }
-
-
-        #retakeBtn {
-
-            background: #ef6c00;
-
-            display: none;
-        }
-
-
-        #printBtn {
-
-            background: #00897b;
-
-            display: none;
-        }
-
-
-        #previewBtn {
-
-            background: #455a64;
-        }
-
-
-        /* ==================================================
-           COLLAGE MODE
-           ================================================== */
-
-        .collage-controls {
-
-            display: flex;
-
-            justify-content: center;
-
-            gap: 15px;
-
-            margin-top: 20px;
-
-            flex-wrap: wrap;
-        }
-
-
-        /* ==================================================
-           MOBILE
-           ================================================== */
-
-        @media (max-width: 600px) {
-
-            h1 {
-
-                font-size: 25px;
-
-                letter-spacing: 2px;
-            }
-
-            button {
-
-                width: 100%;
-            }
-
-            .buttons {
-
-                flex-direction: column;
-            }
-
-            #countdownOverlay {
-
-                font-size: 100px;
-            }
-        }
-
-    </style>
+    }
+</style>
+```
 
 </head>
 
-
 <body>
-
 
 <div class="container">
 
+```
+<h1>📸 PHOTOBOOTH</h1>
 
-    <h1>📸 PHOTOBOOTH</h1>
+<div class="preview-container">
 
+    <img
+        id="liveview"
+        alt="Camera Live View"
+    >
 
-    <div class="preview-container">
+    <img
+        id="collageImg"
+        alt="Latest Photobooth Collage"
+    >
 
-        <img
-            id="liveview"
-            alt="Camera Live View"
-        >
-
-        <img
-            id="collageImg"
-            alt="Latest Photobooth Collage"
-        >
-
-        <div id="cameraOff">
-            Camera disconnected
-        </div>
-
-        <div id="countdownOverlay">
-            3
-        </div>
-
+    <div id="cameraOff">
+        Camera disconnected
     </div>
 
-
-    <div id="status">
-        Camera not connected.
+    <div id="countdownOverlay">
+        3
     </div>
-
-
-    <!-- MAIN CONTROLS -->
-
-    <div class="buttons">
-
-        <button
-            id="connectBtn"
-            onclick="connectCamera()"
-        >
-            CONNECT CAMERA
-        </button>
-
-
-        <button
-            id="startBtn"
-            onclick="startSession()"
-            disabled
-        >
-            START SESSION
-        </button>
-
-
-        <button
-            id="takeBtn"
-            onclick="manualTakePhoto()"
-            disabled
-        >
-            TAKE PHOTO
-        </button>
-
-
-        <button
-            id="previewBtn"
-            onclick="previewLastCollage()"
-        >
-            PREVIEW LAST COLLAGE
-        </button>
-
-
-        <button
-            id="disconnectBtn"
-            onclick="disconnectCamera()"
-            disabled
-        >
-            DISCONNECT
-        </button>
-
-    </div>
-
-
-    <!-- COLLAGE CONTROLS -->
-
-    <div class="collage-controls">
-
-        <button
-            id="retakeBtn"
-            onclick="retakeSession()"
-        >
-            🔄 RETAKE
-        </button>
-
-
-        <button
-            id="printBtn"
-            onclick="printCollage()"
-        >
-            🖨️ PRINT
-        </button>
-
-    </div>
-
 
 </div>
 
+<div id="status">
+    Camera not connected.
+</div>
 
+<!-- MAIN CONTROLS -->
+
+<div class="buttons">
+
+    <button
+        id="connectBtn"
+        onclick="connectCamera()"
+    >
+        CONNECT CAMERA
+    </button>
+
+    <button
+        id="startBtn"
+        onclick="startSession()"
+        disabled
+    >
+        START SESSION
+    </button>
+
+    <button
+        id="takeBtn"
+        onclick="manualTakePhoto()"
+        disabled
+    >
+        TAKE PHOTO
+    </button>
+
+    <button
+        id="previewBtn"
+        onclick="previewLastCollage()"
+    >
+        PREVIEW LAST COLLAGE
+    </button>
+
+    <button
+        id="disconnectBtn"
+        onclick="disconnectCamera()"
+        disabled
+    >
+        DISCONNECT
+    </button>
+
+</div>
+
+<!-- COLLAGE CONTROLS -->
+
+<div class="collage-controls">
+
+    <button
+        id="retakeBtn"
+        onclick="retakeSession()"
+    >
+        🔄 RETAKE
+    </button>
+
+    <button
+        id="printBtn"
+        onclick="printCollage()"
+    >
+        🖨️ PRINT
+    </button>
+
+    <button
+        id="returnMenuBtn"
+        onclick="returnToMenu()"
+    >
+        ↩️ RETURN TO MENU
+    </button>
+
+</div>
+```
+
+</div>
 
 <script>
-
 
 // ============================================================
 // ELEMENTS
@@ -492,13 +380,15 @@ const retakeBtn =
 const printBtn =
     document.getElementById("printBtn");
 
+const returnMenuBtn =
+    document.getElementById("returnMenuBtn");
+
 
 // ============================================================
 // STATUS
 // ============================================================
 
 function setStatus(message) {
-
     statusText.textContent = message;
 }
 
@@ -515,64 +405,38 @@ async function connectCamera() {
 
     try {
 
-        const response =
-            await fetch(
-                "/connect",
-                {
-                    method: "POST"
-                }
-            );
-
-        const data =
-            await response.json();
-
-
-        if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
-        }
-
-
-        liveview.src =
-            "/liveview";
-
-
-        liveview.style.display =
-            "block";
-
-        collageImg.style.display =
-            "none";
-
-        cameraOff.style.display =
-            "none";
-
-
-        startBtn.disabled =
-            false;
-
-        takeBtn.disabled =
-            false;
-
-        disconnectBtn.disabled =
-            false;
-
-
-        setStatus(
-            "Camera connected."
+        const response = await fetch(
+            "/connect",
+            {
+                method: "POST"
+            }
         );
 
-    }
+        const data = await response.json();
 
-    catch (error) {
+        if (!data.success) {
+            throw new Error(data.message);
+        }
 
-        connectBtn.disabled =
-            false;
+        liveview.src = "/liveview";
+
+        liveview.style.display = "block";
+        collageImg.style.display = "none";
+        cameraOff.style.display = "none";
+
+        startBtn.disabled = false;
+        takeBtn.disabled = false;
+        disconnectBtn.disabled = false;
+
+        setStatus("Camera connected.");
+
+    } catch (error) {
+
+        connectBtn.disabled = false;
 
         setStatus(
-            "Connection error: "
-            + error.message
+            "Connection error: " +
+            error.message
         );
     }
 }
@@ -584,44 +448,34 @@ async function connectCamera() {
 
 function showCountdown(seconds) {
 
-    return new Promise(
-        resolve => {
+    return new Promise(resolve => {
 
-            let count = seconds;
+        let count = seconds;
 
-            countdownOverlay.textContent =
-                count;
+        countdownOverlay.textContent = count;
+        countdownOverlay.style.display = "block";
 
-            countdownOverlay.style.display =
-                "block";
+        const timer = setInterval(() => {
 
+            count--;
 
-            const timer =
-                setInterval(
-                    () => {
+            if (count <= 0) {
 
-                        count--;
+                clearInterval(timer);
 
-                        if (count <= 0) {
+                countdownOverlay.style.display = "none";
 
-                            clearInterval(timer);
+                resolve();
 
-                            countdownOverlay.style.display =
-                                "none";
+            } else {
 
-                            resolve();
+                countdownOverlay.textContent = count;
 
-                        } else {
+            }
 
-                            countdownOverlay.textContent =
-                                count;
-                        }
+        }, 1000);
 
-                    },
-                    1000
-                );
-        }
-    );
+    });
 }
 
 
@@ -630,7 +484,6 @@ function showCountdown(seconds) {
 // ============================================================
 
 async function startSession() {
-
     await runPhotoSession();
 }
 
@@ -641,26 +494,14 @@ async function startSession() {
 
 async function retakeSession() {
 
-    retakeBtn.disabled =
-        true;
+    retakeBtn.disabled = true;
+    printBtn.disabled = true;
+    returnMenuBtn.disabled = true;
 
-    printBtn.disabled =
-        true;
+    collageImg.style.display = "none";
+    liveview.style.display = "block";
 
-
-    // Return to live view
-
-    collageImg.style.display =
-        "none";
-
-    liveview.style.display =
-        "block";
-
-
-    setStatus(
-        "Starting a new session..."
-    );
-
+    setStatus("Starting a new session...");
 
     await runPhotoSession();
 }
@@ -672,101 +513,67 @@ async function retakeSession() {
 
 async function runPhotoSession() {
 
-    startBtn.disabled =
-        true;
+    startBtn.disabled = true;
+    takeBtn.disabled = true;
+    previewBtn.disabled = true;
 
-    takeBtn.disabled =
-        true;
-
-    previewBtn.disabled =
-        true;
-
-    retakeBtn.style.display =
-        "none";
-
-    printBtn.style.display =
-        "none";
-
+    retakeBtn.style.display = "none";
+    printBtn.style.display = "none";
+    returnMenuBtn.style.display = "none";
 
     try {
 
         // Start session on server
 
-        let response =
-            await fetch(
-                "/start-session",
-                {
-                    method: "POST"
-                }
-            );
+        let response = await fetch(
+            "/start-session",
+            {
+                method: "POST"
+            }
+        );
 
-
-        let data =
-            await response.json();
-
+        let data = await response.json();
 
         if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
+            throw new Error(data.message);
         }
 
 
         // Take 4 photos
 
-        for (
-            let i = 1;
-            i <= 4;
-            i++
-        ) {
+        for (let i = 1; i <= 4; i++) {
 
             setStatus(
-                "Get ready for photo "
-                + i
-                + " of 4..."
+                "Get ready for photo " +
+                i +
+                " of 4..."
             );
-
 
             await showCountdown(3);
 
-
             setStatus(
-                "Taking photo "
-                + i
-                + " of 4..."
+                "Taking photo " +
+                i +
+                " of 4..."
             );
 
+            response = await fetch(
+                "/take-photo",
+                {
+                    method: "POST"
+                }
+            );
 
-            response =
-                await fetch(
-                    "/take-photo",
-                    {
-                        method: "POST"
-                    }
-                );
-
-
-            data =
-                await response.json();
-
+            data = await response.json();
 
             if (!data.success) {
-
-                throw new Error(
-                    data.message
-                );
+                throw new Error(data.message);
             }
-
 
             // Small pause after photo
 
-            await new Promise(
-                resolve =>
-                    setTimeout(
-                        resolve,
-                        800
-                    )
+            await new Promise(resolve =>
+                setTimeout(resolve, 800)
             );
         }
 
@@ -777,25 +584,17 @@ async function runPhotoSession() {
             "Creating your 4×6 photo..."
         );
 
+        response = await fetch(
+            "/make-collage",
+            {
+                method: "POST"
+            }
+        );
 
-        response =
-            await fetch(
-                "/make-collage",
-                {
-                    method: "POST"
-                }
-            );
-
-
-        data =
-            await response.json();
-
+        data = await response.json();
 
         if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
+            throw new Error(data.message);
         }
 
 
@@ -803,30 +602,20 @@ async function runPhotoSession() {
 
         showCollage();
 
-
         setStatus(
             "Your photo is ready!"
         );
 
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         setStatus(
-            "Error: "
-            + error.message
+            "Error: " +
+            error.message
         );
 
-
-        startBtn.disabled =
-            false;
-
-        takeBtn.disabled =
-            false;
-
-        previewBtn.disabled =
-            false;
+        startBtn.disabled = false;
+        takeBtn.disabled = false;
+        previewBtn.disabled = false;
     }
 }
 
@@ -837,34 +626,66 @@ async function runPhotoSession() {
 
 function showCollage() {
 
-    liveview.style.display =
-        "none";
+    liveview.style.display = "none";
 
-    collageImg.style.display =
-        "block";
-
+    collageImg.style.display = "block";
 
     collageImg.src =
-        "/collage-image?timestamp="
-        + Date.now();
+        "/collage-image?timestamp=" +
+        Date.now();
 
 
-    retakeBtn.style.display =
-        "inline-block";
+    // Show collage controls
 
-    printBtn.style.display =
-        "inline-block";
-
-
-    retakeBtn.disabled =
-        false;
-
-    printBtn.disabled =
-        false;
+    retakeBtn.style.display = "inline-block";
+    printBtn.style.display = "inline-block";
+    returnMenuBtn.style.display = "inline-block";
 
 
-    previewBtn.disabled =
-        false;
+    // Enable collage controls
+
+    retakeBtn.disabled = false;
+    printBtn.disabled = false;
+    returnMenuBtn.disabled = false;
+
+    previewBtn.disabled = false;
+}
+
+
+// ============================================================
+// RETURN TO MENU
+// ============================================================
+
+function returnToMenu() {
+
+    // Hide collage
+
+    collageImg.style.display = "none";
+
+
+    // Show live camera
+
+    liveview.style.display = "block";
+
+
+    // Hide collage controls
+
+    retakeBtn.style.display = "none";
+    printBtn.style.display = "none";
+    returnMenuBtn.style.display = "none";
+
+
+    // Enable normal menu controls
+
+    startBtn.disabled = false;
+    takeBtn.disabled = false;
+    previewBtn.disabled = false;
+    disconnectBtn.disabled = false;
+
+
+    setStatus(
+        "Ready for another session."
+    );
 }
 
 
@@ -878,53 +699,36 @@ async function previewLastCollage() {
         "Checking for the latest collage..."
     );
 
-
-    previewBtn.disabled =
-        true;
-
+    previewBtn.disabled = true;
 
     try {
 
-        const response =
-            await fetch(
-                "/preview-last-collage"
-            );
+        const response = await fetch(
+            "/preview-last-collage"
+        );
 
-
-        const data =
-            await response.json();
-
+        const data = await response.json();
 
         if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
+            throw new Error(data.message);
         }
 
-
         showCollage();
-
 
         setStatus(
             "Showing your last collage."
         );
 
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         setStatus(
             "No previous collage found."
         );
 
-    }
+    } finally {
 
-    finally {
+        previewBtn.disabled = false;
 
-        previewBtn.disabled =
-            false;
     }
 }
 
@@ -935,64 +739,46 @@ async function previewLastCollage() {
 
 async function printCollage() {
 
-    printBtn.disabled =
-        true;
-
-    retakeBtn.disabled =
-        true;
-
+    printBtn.disabled = true;
+    retakeBtn.disabled = true;
+    returnMenuBtn.disabled = true;
 
     setStatus(
         "🖨️ Sending photo to Canon SELPHY..."
     );
 
-
     try {
 
-        const response =
-            await fetch(
-                "/print-collage",
-                {
-                    method: "POST"
-                }
-            );
+        const response = await fetch(
+            "/print-collage",
+            {
+                method: "POST"
+            }
+        );
 
-
-        const data =
-            await response.json();
-
+        const data = await response.json();
 
         if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
+            throw new Error(data.message);
         }
-
 
         setStatus(
             "✅ Print job sent successfully!"
         );
 
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         setStatus(
-            "❌ Printing error: "
-            + error.message
+            "❌ Printing error: " +
+            error.message
         );
 
-    }
+    } finally {
 
-    finally {
+        printBtn.disabled = false;
+        retakeBtn.disabled = false;
+        returnMenuBtn.disabled = false;
 
-        printBtn.disabled =
-            false;
-
-        retakeBtn.disabled =
-            false;
     }
 }
 
@@ -1003,58 +789,43 @@ async function printCollage() {
 
 async function manualTakePhoto() {
 
-    takeBtn.disabled =
-        true;
-
+    takeBtn.disabled = true;
 
     setStatus(
         "Taking photo..."
     );
 
-
     try {
 
-        const response =
-            await fetch(
-                "/take-photo",
-                {
-                    method: "POST"
-                }
-            );
+        const response = await fetch(
+            "/take-photo",
+            {
+                method: "POST"
+            }
+        );
 
-
-        const data =
-            await response.json();
-
+        const data = await response.json();
 
         if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
+            throw new Error(data.message);
         }
 
-
         setStatus(
-            "Photo taken: "
-            + data.filename
+            "Photo taken: " +
+            data.filename
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         setStatus(
-            "Error: "
-            + error.message
+            "Error: " +
+            error.message
         );
 
-    }
+    } finally {
 
-    finally {
+        takeBtn.disabled = false;
 
-        takeBtn.disabled =
-            false;
     }
 }
 
@@ -1069,83 +840,68 @@ async function disconnectCamera() {
         "Disconnecting camera..."
     );
 
-
     try {
 
-        const response =
-            await fetch(
-                "/disconnect",
-                {
-                    method: "POST"
-                }
-            );
+        const response = await fetch(
+            "/disconnect",
+            {
+                method: "POST"
+            }
+        );
 
-
-        const data =
-            await response.json();
-
+        const data = await response.json();
 
         if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
+            throw new Error(data.message);
         }
 
 
-        liveview.src =
-            "";
+        // Stop live view
 
-        liveview.style.display =
-            "none";
+        liveview.src = "";
 
-
-        collageImg.style.display =
-            "none";
+        liveview.style.display = "none";
 
 
-        cameraOff.style.display =
-            "block";
+        // Hide collage
+
+        collageImg.style.display = "none";
 
 
-        connectBtn.disabled =
-            false;
+        // Show camera-off message
 
-        startBtn.disabled =
-            true;
-
-        takeBtn.disabled =
-            true;
-
-        disconnectBtn.disabled =
-            true;
+        cameraOff.style.display = "block";
 
 
-        retakeBtn.style.display =
-            "none";
+        // Reset main buttons
 
-        printBtn.style.display =
-            "none";
+        connectBtn.disabled = false;
+        startBtn.disabled = true;
+        takeBtn.disabled = true;
+        disconnectBtn.disabled = true;
+
+
+        // Hide collage buttons
+
+        retakeBtn.style.display = "none";
+        printBtn.style.display = "none";
+        returnMenuBtn.style.display = "none";
 
 
         setStatus(
             "Camera disconnected."
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         setStatus(
-            "Error: "
-            + error.message
+            "Error: " +
+            error.message
         );
     }
 }
 
-
 </script>
-
 
 </body>
 

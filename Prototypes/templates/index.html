@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -13,7 +12,6 @@
 
     <title>Photobooth</title>
 
-
     <style>
 
         /* =====================================================
@@ -26,13 +24,10 @@
 
         html,
         body {
-
             margin: 0;
             padding: 0;
-
             width: 100%;
             height: 100%;
-
             overflow: hidden;
 
             font-family:
@@ -52,17 +47,14 @@
             color: white;
         }
 
-
         body {
             min-height: 100vh;
         }
-
 
         button,
         a {
             -webkit-tap-highlight-color: transparent;
         }
-
 
         button {
             font-family: inherit;
@@ -74,7 +66,6 @@
         ===================================================== */
 
         header {
-
             position: fixed;
 
             top: 0;
@@ -86,9 +77,7 @@
             padding: 0 28px;
 
             display: flex;
-
             align-items: center;
-
             justify-content: space-between;
 
             z-index: 20;
@@ -98,32 +87,23 @@
                 transform 0.4s ease;
         }
 
-
         .brand {
-
             display: flex;
-
             align-items: center;
-
             gap: 11px;
         }
 
-
         .brand-icon {
-
             width: 40px;
             height: 40px;
 
             border-radius: 11px;
 
             display: flex;
-
             align-items: center;
-
             justify-content: center;
 
-            background:
-                rgba(255,255,255,0.92);
+            background: rgba(255,255,255,0.92);
 
             color: #111;
 
@@ -134,32 +114,24 @@
                 rgba(0,0,0,0.25);
         }
 
-
         .brand-text h1 {
-
             margin: 0;
 
             font-size: 19px;
-
             font-weight: 700;
 
             letter-spacing: -0.3px;
         }
 
-
         .brand-text p {
-
             margin: 2px 0 0;
 
-            color:
-                rgba(255,255,255,0.55);
+            color: rgba(255,255,255,0.55);
 
             font-size: 11px;
         }
 
-
         .design-link {
-
             display: flex;
 
             align-items: center;
@@ -191,9 +163,7 @@
                 transform 0.2s;
         }
 
-
         .design-link:hover {
-
             background:
                 rgba(255,255,255,0.14);
 
@@ -207,20 +177,17 @@
         ===================================================== */
 
         .booth-area {
-
             position: fixed;
 
             top: 72px;
 
             left: 0;
             right: 0;
-
             bottom: 0;
 
             display: flex;
 
             align-items: center;
-
             justify-content: center;
 
             padding: 25px;
@@ -232,7 +199,6 @@
         ===================================================== */
 
         .camera-frame {
-
             position: relative;
 
             width:
@@ -248,11 +214,9 @@
                 );
 
             max-width: 75vw;
-
             max-height: 75vh;
 
             min-width: 500px;
-
             min-height: 320px;
 
             background: #050608;
@@ -266,7 +230,6 @@
                 rgba(255,255,255,0.12);
 
             box-shadow:
-
                 0 30px 80px
                 rgba(0,0,0,0.45),
 
@@ -278,9 +241,7 @@
                 height 0.5s ease;
         }
 
-
         #liveview {
-
             position: absolute;
 
             inset: 0;
@@ -295,9 +256,7 @@
             background: #050608;
         }
 
-
         .camera-overlay {
-
             position: absolute;
 
             inset: 0;
@@ -305,7 +264,6 @@
             pointer-events: none;
 
             background:
-
                 linear-gradient(
                     to bottom,
                     rgba(0,0,0,0.20),
@@ -321,7 +279,6 @@
         ===================================================== */
 
         .camera-label {
-
             position: absolute;
 
             top: 16px;
@@ -355,7 +312,6 @@
         ===================================================== */
 
         .no-camera {
-
             position: absolute;
 
             inset: 0;
@@ -365,7 +321,6 @@
             flex-direction: column;
 
             align-items: center;
-
             justify-content: center;
 
             gap: 12px;
@@ -377,19 +332,13 @@
             z-index: 2;
         }
 
-
         .no-camera-icon {
-
             font-size: 48px;
-
             opacity: 0.45;
         }
 
-
         .no-camera-text {
-
             font-size: 15px;
-
             color: #777;
         }
 
@@ -399,11 +348,9 @@
         ===================================================== */
 
         .camera-status {
-
             position: fixed;
 
             left: 28px;
-
             bottom: 25px;
 
             display: flex;
@@ -438,9 +385,7 @@
                 transform 0.4s ease;
         }
 
-
         .status-dot {
-
             width: 8px;
             height: 8px;
 
@@ -449,9 +394,7 @@
             background: #777;
         }
 
-
         .status-dot.connected {
-
             background: #55d879;
 
             box-shadow:
@@ -465,11 +408,9 @@
         ===================================================== */
 
         .control-panel {
-
             position: fixed;
 
             right: 28px;
-
             bottom: 25px;
 
             width: 270px;
@@ -499,19 +440,14 @@
                 transform 0.4s ease;
         }
 
-
         .control-title {
-
             margin: 0 0 4px;
 
             font-size: 17px;
-
             font-weight: 700;
         }
 
-
         .control-description {
-
             margin: 0 0 14px;
 
             color: #858c95;
@@ -527,7 +463,6 @@
         ===================================================== */
 
         .photo-progress {
-
             display: grid;
 
             grid-template-columns:
@@ -538,9 +473,7 @@
             margin-bottom: 14px;
         }
 
-
         .photo-step {
-
             height: 48px;
 
             border-radius: 8px;
@@ -555,7 +488,6 @@
             display: flex;
 
             align-items: center;
-
             justify-content: center;
 
             flex-direction: column;
@@ -569,17 +501,12 @@
             transition: 0.25s;
         }
 
-
         .photo-step-number {
-
             font-size: 12px;
-
             font-weight: 700;
         }
 
-
         .photo-step.active {
-
             border-color:
                 rgba(66,133,244,0.8);
 
@@ -589,9 +516,7 @@
             color: #7daaff;
         }
 
-
         .photo-step.completed {
-
             border-color:
                 rgba(85,216,121,0.55);
 
@@ -607,23 +532,17 @@
         ===================================================== */
 
         .photo-count {
-
             text-align: center;
 
             margin-bottom: 13px;
         }
 
-
         .photo-count-number {
-
             font-size: 24px;
-
             font-weight: 700;
         }
 
-
         .photo-count-label {
-
             margin-top: 2px;
 
             color: #6f767f;
@@ -637,7 +556,6 @@
         ===================================================== */
 
         .start-button {
-
             width: 100%;
 
             padding: 14px 18px;
@@ -656,7 +574,6 @@
             color: white;
 
             font-size: 13px;
-
             font-weight: 700;
 
             cursor: pointer;
@@ -668,16 +585,11 @@
             transition: 0.2s;
         }
 
-
         .start-button:hover:not(:disabled) {
-
-            transform:
-                translateY(-1px);
+            transform: translateY(-1px);
         }
 
-
         .start-button:disabled {
-
             cursor: not-allowed;
 
             opacity: 0.45;
@@ -689,7 +601,6 @@
         ===================================================== */
 
         .connection-buttons {
-
             display: grid;
 
             grid-template-columns:
@@ -700,9 +611,7 @@
             margin-top: 7px;
         }
 
-
         .small-button {
-
             padding: 8px 8px;
 
             border-radius: 8px;
@@ -723,9 +632,7 @@
             transition: 0.2s;
         }
 
-
         .small-button:hover {
-
             background:
                 rgba(255,255,255,0.10);
         }
@@ -736,7 +643,6 @@
         ===================================================== */
 
         .message {
-
             min-height: 14px;
 
             margin-top: 9px;
@@ -750,16 +656,488 @@
             line-height: 1.4;
         }
 
-
         .message.error {
-
             color: #ff9292;
         }
 
-
         .message.success {
-
             color: #8ce5a2;
+        }
+
+
+        /* =====================================================
+           PHOTO BEAN
+        ===================================================== */
+
+        .photo-bean-host {
+            position: fixed;
+
+            left: 35px;
+            top: 105px;
+
+            z-index: 9999;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 15px;
+
+            pointer-events: none;
+
+            visibility: visible;
+
+            opacity: 1;
+        }
+
+        .bean-speech {
+            width: 220px;
+
+            padding: 13px 16px;
+
+            border-radius:
+                16px 16px 16px 5px;
+
+            background:
+                rgba(255,255,255,0.96);
+
+            color: #17191d;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            line-height: 1.4;
+
+            box-shadow:
+                0 12px 35px
+                rgba(0,0,0,0.35);
+        }
+
+        .photo-bean-character {
+            position: relative;
+
+            width: 110px;
+            height: 115px;
+
+            flex-shrink: 0;
+
+            transform-origin:
+                center bottom;
+
+            animation:
+                beanIdle
+                2.5s
+                ease-in-out
+                infinite;
+
+            filter:
+                drop-shadow(
+                    0 12px 18px
+                    rgba(0,0,0,0.45)
+                );
+        }
+
+        .bean-ear {
+            position: absolute;
+
+            top: 4px;
+
+            width: 39px;
+            height: 39px;
+
+            border-radius: 50%;
+
+            background: #d8b69d;
+
+            border:
+                5px solid
+                #765b4e;
+
+            z-index: 1;
+        }
+
+        .bean-ear.left {
+            left: 8px;
+        }
+
+        .bean-ear.right {
+            right: 8px;
+        }
+
+        .bean-head {
+            position: absolute;
+
+            left: 20px;
+            top: 18px;
+
+            width: 70px;
+            height: 65px;
+
+            border-radius:
+                48% 48% 45% 45%;
+
+            background: #c9a087;
+
+            border:
+                4px solid
+                #6d5549;
+
+            z-index: 2;
+        }
+
+        .bean-eye {
+            position: absolute;
+
+            top: 42px;
+
+            width: 7px;
+            height: 9px;
+
+            border-radius: 50%;
+
+            background: #171717;
+
+            z-index: 4;
+
+            animation:
+                beanBlink
+                4s
+                infinite;
+        }
+
+        .bean-eye.left {
+            left: 41px;
+        }
+
+        .bean-eye.right {
+            left: 62px;
+        }
+
+        .bean-nose {
+            position: absolute;
+
+            left: 51px;
+            top: 56px;
+
+            width: 9px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #342724;
+
+            z-index: 4;
+        }
+
+        .bean-camera {
+            position: absolute;
+
+            left: 19px;
+            bottom: 0;
+
+            width: 73px;
+            height: 47px;
+
+            border-radius: 10px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #3a3f46,
+                    #24282e
+                );
+
+            border:
+                4px solid
+                #15171a;
+
+            z-index: 5;
+        }
+
+        .bean-camera-top {
+            position: absolute;
+
+            left: 12px;
+            top: -11px;
+
+            width: 25px;
+            height: 11px;
+
+            border-radius:
+                5px 5px 0 0;
+
+            background: #30343a;
+
+            border:
+                3px solid
+                #15171a;
+
+            border-bottom: none;
+        }
+
+        .bean-lens {
+            position: absolute;
+
+            left: 22px;
+            top: 6px;
+
+            width: 30px;
+            height: 30px;
+
+            border-radius: 50%;
+
+            background: #0e1115;
+
+            border:
+                4px solid
+                #707782;
+
+            box-shadow:
+                inset 0 0 0 4px
+                #252a31;
+        }
+
+        .bean-lens::after {
+            content: "";
+
+            position: absolute;
+
+            left: 5px;
+            top: 4px;
+
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(255,255,255,0.75);
+        }
+
+        .bean-camera-flash {
+            position: absolute;
+
+            right: 6px;
+            top: 6px;
+
+            width: 8px;
+            height: 7px;
+
+            border-radius: 2px;
+
+            background: #e8cd6b;
+        }
+
+
+        /* =====================================================
+           PHOTO BEAN STATES
+        ===================================================== */
+
+        .photo-bean-host.ready
+        .photo-bean-character {
+            animation:
+                beanHappy
+                1.4s
+                ease-in-out
+                infinite;
+        }
+
+        .photo-bean-host.countdown
+        .photo-bean-character {
+            animation:
+                beanReady
+                0.5s
+                ease-in-out
+                infinite alternate;
+        }
+
+        .photo-bean-host.capture
+        .photo-bean-character {
+            animation:
+                beanCapture
+                0.45s
+                ease-out;
+        }
+
+        .photo-bean-host.capture
+        .bean-camera-flash {
+            background: white;
+
+            box-shadow:
+                0 0 28px 14px
+                rgba(255,245,190,0.95);
+        }
+
+        .photo-bean-host.celebrate
+        .photo-bean-character {
+            animation:
+                beanCelebrate
+                0.7s
+                ease-in-out
+                2;
+        }
+
+        .photo-bean-host.processing
+        .bean-lens {
+            animation:
+                beanLensSpin
+                0.7s
+                linear
+                infinite;
+        }
+
+        .photo-bean-host.error
+        .photo-bean-character {
+            animation:
+                beanError
+                0.35s
+                ease-in-out
+                3;
+        }
+
+
+        /* =====================================================
+           PHOTO BEAN ANIMATIONS
+        ===================================================== */
+
+        @keyframes beanIdle {
+
+            0%,
+            100% {
+                transform:
+                    translateY(0)
+                    rotate(0deg);
+            }
+
+            50% {
+                transform:
+                    translateY(-6px)
+                    rotate(1deg);
+            }
+        }
+
+        @keyframes beanHappy {
+
+            0%,
+            100% {
+                transform:
+                    translateY(0);
+            }
+
+            50% {
+                transform:
+                    translateY(-9px);
+            }
+        }
+
+        @keyframes beanBlink {
+
+            0%,
+            45%,
+            49%,
+            100% {
+                transform:
+                    scaleY(1);
+            }
+
+            47% {
+                transform:
+                    scaleY(0.12);
+            }
+        }
+
+        @keyframes beanReady {
+
+            from {
+                transform:
+                    translateY(0)
+                    scale(1);
+            }
+
+            to {
+                transform:
+                    translateY(-8px)
+                    scale(1.05);
+            }
+        }
+
+        @keyframes beanCapture {
+
+            0% {
+                transform:
+                    scale(1);
+            }
+
+            35% {
+                transform:
+                    scale(0.90);
+            }
+
+            65% {
+                transform:
+                    scale(1.12);
+            }
+
+            100% {
+                transform:
+                    scale(1);
+            }
+        }
+
+        @keyframes beanCelebrate {
+
+            0%,
+            100% {
+                transform:
+                    translateY(0)
+                    rotate(0deg);
+            }
+
+            25% {
+                transform:
+                    translateY(-14px)
+                    rotate(-7deg);
+            }
+
+            50% {
+                transform:
+                    translateY(-5px)
+                    rotate(7deg);
+            }
+
+            75% {
+                transform:
+                    translateY(-13px)
+                    rotate(-5deg);
+            }
+        }
+
+        @keyframes beanLensSpin {
+
+            from {
+                transform:
+                    rotate(0deg);
+            }
+
+            to {
+                transform:
+                    rotate(360deg);
+            }
+        }
+
+        @keyframes beanError {
+
+            0%,
+            100% {
+                transform:
+                    translateX(0);
+            }
+
+            50% {
+                transform:
+                    translateX(8px);
+            }
         }
 
 
@@ -768,43 +1146,36 @@
         ===================================================== */
 
         .booth-session-active header {
-
             opacity: 0;
 
             transform:
                 translateY(-20px);
 
-            pointer-events:
-                none;
+            pointer-events: none;
         }
 
-
-        .booth-session-active .control-panel {
-
+        .booth-session-active
+        .control-panel {
             opacity: 0;
 
             transform:
                 translateY(25px);
 
-            pointer-events:
-                none;
+            pointer-events: none;
         }
 
-
-        .booth-session-active .camera-status {
-
+        .booth-session-active
+        .camera-status {
             opacity: 0;
 
             transform:
                 translateY(20px);
 
-            pointer-events:
-                none;
+            pointer-events: none;
         }
 
-
-        .booth-session-active .camera-frame {
-
+        .booth-session-active
+        .camera-frame {
             width:
                 min(
                     82vw,
@@ -824,7 +1195,6 @@
         ===================================================== */
 
         .countdown-overlay {
-
             position: fixed;
 
             inset: 0;
@@ -832,30 +1202,24 @@
             display: none;
 
             align-items: center;
-
             justify-content: center;
 
-            z-index: 30;
+            z-index: 10000;
 
             pointer-events: none;
         }
 
-
         .countdown-overlay.visible {
-
             display: flex;
         }
 
-
         .countdown-number {
-
             width: 170px;
             height: 170px;
 
             display: flex;
 
             align-items: center;
-
             justify-content: center;
 
             border-radius: 50%;
@@ -890,11 +1254,9 @@
                 ease-out;
         }
 
-
         @keyframes countdownPulse {
 
             0% {
-
                 transform:
                     scale(1.25);
 
@@ -902,12 +1264,10 @@
             }
 
             25% {
-
                 opacity: 1;
             }
 
             100% {
-
                 transform:
                     scale(1);
 
@@ -921,7 +1281,6 @@
         ===================================================== */
 
         .flash {
-
             position: fixed;
 
             inset: 0;
@@ -930,35 +1289,29 @@
 
             opacity: 0;
 
-            z-index: 40;
+            z-index: 11000;
 
             pointer-events: none;
         }
 
-
         .flash.active {
-
             animation:
                 cameraFlash
                 0.35s
                 ease-out;
         }
 
-
         @keyframes cameraFlash {
 
             0% {
-
                 opacity: 0;
             }
 
             25% {
-
                 opacity: 0.9;
             }
 
             100% {
-
                 opacity: 0;
             }
         }
@@ -969,7 +1322,6 @@
         ===================================================== */
 
         .collage-preview-overlay {
-
             position: fixed;
 
             inset: 0;
@@ -977,7 +1329,6 @@
             display: none;
 
             align-items: center;
-
             justify-content: center;
 
             background:
@@ -986,25 +1337,20 @@
             backdrop-filter:
                 blur(15px);
 
-            z-index: 50;
+            z-index: 12000;
 
             padding: 30px;
         }
 
-
         .collage-preview-overlay.visible {
-
             display: flex;
         }
 
-
         .collage-preview-container {
-
             max-width:
                 min(90vw, 1000px);
 
-            max-height:
-                90vh;
+            max-height: 90vh;
 
             display: flex;
 
@@ -1015,27 +1361,20 @@
             gap: 14px;
         }
 
-
         .collage-title {
-
             margin: 0;
 
             font-size: 20px;
-
             font-weight: 700;
         }
 
-
         #collageImage {
-
             display: none;
 
             max-width: 100%;
-
             max-height: 72vh;
 
             width: auto;
-
             height: auto;
 
             border-radius: 10px;
@@ -1045,9 +1384,7 @@
                 rgba(0,0,0,0.55);
         }
 
-
         .collage-ready {
-
             color: #8ce5a2;
 
             font-size: 11px;
@@ -1055,15 +1392,13 @@
 
 
         /* =====================================================
-           COLLAGE PREVIEW BUTTONS
+           PREVIEW BUTTONS
         ===================================================== */
 
         .preview-buttons {
-
             display: flex;
 
             align-items: center;
-
             justify-content: center;
 
             gap: 9px;
@@ -1071,11 +1406,8 @@
             flex-wrap: wrap;
         }
 
-
         .preview-button {
-
-            padding:
-                11px 18px;
+            padding: 11px 18px;
 
             border: none;
 
@@ -1084,7 +1416,6 @@
             color: white;
 
             font-size: 12px;
-
             font-weight: 700;
 
             cursor: pointer;
@@ -1095,16 +1426,11 @@
                 background 0.2s;
         }
 
-
         .preview-button:hover {
-
-            transform:
-                translateY(-1px);
+            transform: translateY(-1px);
         }
 
-
         .preview-button:disabled {
-
             opacity: 0.45;
 
             cursor: not-allowed;
@@ -1112,13 +1438,7 @@
             transform: none;
         }
 
-
-        /* =====================================================
-           RETAKE BUTTON
-        ===================================================== */
-
         .retake-button {
-
             background:
                 linear-gradient(
                     135deg,
@@ -1127,24 +1447,7 @@
                 );
         }
 
-
-        .retake-button:hover {
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #4385ed,
-                    #316bd0
-                );
-        }
-
-
-        /* =====================================================
-           PRINT BUTTON
-        ===================================================== */
-
         .print-button {
-
             background:
                 linear-gradient(
                     135deg,
@@ -1153,24 +1456,7 @@
                 );
         }
 
-
-        .print-button:hover {
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #d77a2d,
-                    #b45a20
-                );
-        }
-
-
-        /* =====================================================
-           RETURN TO MENU
-        ===================================================== */
-
         .menu-button {
-
             background:
                 rgba(255,255,255,0.08);
 
@@ -1183,67 +1469,18 @@
         }
 
 
-        .menu-button:hover {
-
-            background:
-                rgba(255,255,255,0.14);
-        }
-
-
         /* =====================================================
            RESPONSIVE
         ===================================================== */
-
-        @media (max-width: 1100px) {
-
-            .camera-frame {
-
-                width: 70vw;
-
-                height:
-                    min(
-                        70vh,
-                        calc(70vw / 1.55)
-                    );
-
-                min-width: 0;
-
-                min-height: 0;
-            }
-
-
-            .control-panel {
-
-                width: 240px;
-
-                right: 18px;
-            }
-
-
-            .booth-session-active .camera-frame {
-
-                width: 76vw;
-
-                height:
-                    min(
-                        76vh,
-                        calc(76vw / 1.55)
-                    );
-            }
-        }
-
 
         @media (max-width: 800px) {
 
             html,
             body {
-
                 overflow: auto;
             }
 
-
             .booth-area {
-
                 position: relative;
 
                 top: 72px;
@@ -1253,16 +1490,13 @@
 
                 padding: 20px;
 
-                flex-direction:
-                    column;
+                flex-direction: column;
 
                 justify-content:
                     flex-start;
             }
 
-
             .camera-frame {
-
                 width: 100%;
 
                 height: auto;
@@ -1270,17 +1504,16 @@
                 aspect-ratio: 16 / 10;
 
                 max-width: none;
-
                 max-height: none;
+
+                min-width: 0;
+                min-height: 0;
             }
 
-
             .control-panel {
-
                 position: relative;
 
                 right: auto;
-
                 bottom: auto;
 
                 width: 100%;
@@ -1288,92 +1521,43 @@
                 max-width: 600px;
             }
 
-
             .camera-status {
-
                 position: relative;
 
                 left: auto;
-
                 bottom: auto;
 
-                margin:
-                    10px 20px;
+                margin: 10px 20px;
             }
 
-
-            .booth-session-active .camera-frame {
-
-                width: 100%;
-
-                height: auto;
-
-                aspect-ratio: 16 / 10;
+            .photo-bean-host {
+                left: 15px;
+                top: 85px;
             }
 
+            .photo-bean-character {
+                transform: scale(0.8);
 
-            .preview-buttons {
-
-                flex-direction:
-                    column;
-
-                width: 100%;
+                transform-origin:
+                    center center;
             }
 
-
-            .preview-button {
-
-                width: 100%;
-
-                max-width: 300px;
-            }
-        }
-
-
-        @media (max-width: 600px) {
-
-            header {
-
-                padding:
-                    0 16px;
-            }
-
-
-            .brand-text p {
-
-                display: none;
-            }
-
-
-            .design-link {
-
-                padding:
-                    8px 10px;
+            .bean-speech {
+                width: 160px;
 
                 font-size: 10px;
             }
 
+            .preview-buttons {
+                flex-direction: column;
 
-            .booth-area {
-
-                padding:
-                    15px;
+                width: 100%;
             }
 
+            .preview-button {
+                width: 100%;
 
-            .camera-frame {
-
-                border-radius:
-                    18px;
-            }
-
-
-            .countdown-number {
-
-                width: 140px;
-                height: 140px;
-
-                font-size: 68px;
+                max-width: 300px;
             }
         }
 
@@ -1424,14 +1608,12 @@
 
 
 <!-- =========================================================
-     BOOTH AREA
+     BOOTH
 ========================================================= -->
 
 <div class="booth-area">
 
-
     <div class="camera-frame">
-
 
         <img
             id="liveview"
@@ -1439,18 +1621,15 @@
             alt="Sony α7C II Live View"
         >
 
-
         <div
             class="camera-overlay"
         ></div>
-
 
         <div
             class="camera-label"
         >
             SONY α7C II • LIVE
         </div>
-
 
         <div
             id="noCamera"
@@ -1462,7 +1641,6 @@
             >
                 📷
             </div>
-
 
             <div
                 class="no-camera-text"
@@ -1482,19 +1660,14 @@
      CAMERA STATUS
 ========================================================= -->
 
-<div
-    class="camera-status"
->
+<div class="camera-status">
 
     <div
         id="statusDot"
         class="status-dot"
     ></div>
 
-
-    <span
-        id="status"
-    >
+    <span id="status">
         Camera disconnected
     </span>
 
@@ -1506,40 +1679,26 @@
      CONTROL PANEL
 ========================================================= -->
 
-<div
-    class="control-panel"
->
+<div class="control-panel">
 
-
-    <h2
-        class="control-title"
-    >
+    <h2 class="control-title">
         Photo Session
     </h2>
 
-
-    <p
-        class="control-description"
-    >
-        Press Start and the booth will
-        automatically capture three photos
-        and create your collage.
+    <p class="control-description">
+        Press Start and the booth will automatically
+        capture three photos and create your collage.
     </p>
 
 
-    <div
-        class="photo-progress"
-    >
-
+    <div class="photo-progress">
 
         <div
             class="photo-step"
             id="step1"
         >
 
-            <div
-                class="photo-step-number"
-            >
+            <div class="photo-step-number">
                 1
             </div>
 
@@ -1555,9 +1714,7 @@
             id="step2"
         >
 
-            <div
-                class="photo-step-number"
-            >
+            <div class="photo-step-number">
                 2
             </div>
 
@@ -1573,9 +1730,7 @@
             id="step3"
         >
 
-            <div
-                class="photo-step-number"
-            >
+            <div class="photo-step-number">
                 3
             </div>
 
@@ -1585,14 +1740,10 @@
 
         </div>
 
-
     </div>
 
 
-
-    <div
-        class="photo-count"
-    >
+    <div class="photo-count">
 
         <div
             class="photo-count-number"
@@ -1601,15 +1752,11 @@
             0 / 3
         </div>
 
-
-        <div
-            class="photo-count-label"
-        >
+        <div class="photo-count-label">
             Photos captured
         </div>
 
     </div>
-
 
 
     <button
@@ -1622,10 +1769,7 @@
     </button>
 
 
-
-    <div
-        class="connection-buttons"
-    >
+    <div class="connection-buttons">
 
         <button
             class="small-button"
@@ -1633,7 +1777,6 @@
         >
             🔌 Connect Camera
         </button>
-
 
         <button
             class="small-button"
@@ -1645,7 +1788,6 @@
     </div>
 
 
-
     <div
         id="message"
         class="message"
@@ -1653,6 +1795,74 @@
         Connect the camera to begin.
     </div>
 
+</div>
+
+
+
+<!-- =========================================================
+     PHOTO BEAN
+========================================================= -->
+
+<div
+    id="photoBean"
+    class="photo-bean-host"
+>
+
+    <div
+        id="beanSpeech"
+        class="bean-speech"
+    >
+        Connect the camera and I'll get us ready!
+    </div>
+
+
+    <div class="photo-bean-character">
+
+        <div
+            class="bean-ear left"
+        ></div>
+
+        <div
+            class="bean-ear right"
+        ></div>
+
+
+        <div
+            class="bean-head"
+        ></div>
+
+
+        <div
+            class="bean-eye left"
+        ></div>
+
+        <div
+            class="bean-eye right"
+        ></div>
+
+
+        <div
+            class="bean-nose"
+        ></div>
+
+
+        <div class="bean-camera">
+
+            <div
+                class="bean-camera-top"
+            ></div>
+
+            <div
+                class="bean-lens"
+            ></div>
+
+            <div
+                class="bean-camera-flash"
+            ></div>
+
+        </div>
+
+    </div>
 
 </div>
 
@@ -1679,7 +1889,7 @@
 
 
 <!-- =========================================================
-     CAMERA FLASH
+     FLASH
 ========================================================= -->
 
 <div
@@ -1698,15 +1908,9 @@
     class="collage-preview-overlay"
 >
 
+    <div class="collage-preview-container">
 
-    <div
-        class="collage-preview-container"
-    >
-
-
-        <h2
-            class="collage-title"
-        >
+        <h2 class="collage-title">
             Your Photo Booth Collage
         </h2>
 
@@ -1726,10 +1930,7 @@
         </div>
 
 
-        <div
-            class="preview-buttons"
-        >
-
+        <div class="preview-buttons">
 
             <button
                 id="retakeButton"
@@ -1757,9 +1958,7 @@
                 🏠 Return to Menu
             </button>
 
-
         </div>
-
 
     </div>
 
@@ -1789,75 +1988,115 @@ let automationRunning = false;
 // ============================================================
 
 const statusElement =
-    document.getElementById(
-        "status"
-    );
-
+    document.getElementById("status");
 
 const statusDot =
-    document.getElementById(
-        "statusDot"
-    );
-
+    document.getElementById("statusDot");
 
 const messageElement =
-    document.getElementById(
-        "message"
-    );
-
+    document.getElementById("message");
 
 const startButton =
-    document.getElementById(
-        "startSessionButton"
-    );
-
+    document.getElementById("startSessionButton");
 
 const countdownOverlay =
-    document.getElementById(
-        "countdownOverlay"
-    );
-
+    document.getElementById("countdownOverlay");
 
 const countdownNumber =
-    document.getElementById(
-        "countdownNumber"
-    );
-
+    document.getElementById("countdownNumber");
 
 const flash =
-    document.getElementById(
-        "flash"
-    );
-
+    document.getElementById("flash");
 
 const collageOverlay =
-    document.getElementById(
-        "collagePreviewOverlay"
-    );
-
+    document.getElementById("collagePreviewOverlay");
 
 const collageImage =
-    document.getElementById(
-        "collageImage"
-    );
-
+    document.getElementById("collageImage");
 
 const printButton =
-    document.getElementById(
-        "printButton"
-    );
-
+    document.getElementById("printButton");
 
 const retakeButton =
-    document.getElementById(
-        "retakeButton"
-    );
-
+    document.getElementById("retakeButton");
 
 const menuButton =
-    document.getElementById(
-        "menuButton"
+    document.getElementById("menuButton");
+
+const photoBean =
+    document.getElementById("photoBean");
+
+const beanSpeech =
+    document.getElementById("beanSpeech");
+
+
+
+// ============================================================
+// PHOTO BEAN
+// ============================================================
+
+function setBeanState(
+    state,
+    message
+) {
+
+    photoBean.className =
+        "photo-bean-host";
+
+
+    if (state) {
+
+        photoBean.classList.add(
+            state
+        );
+
+    }
+
+
+    if (message) {
+
+        beanSpeech.textContent =
+            message;
+
+    }
+
+}
+
+
+function resetBean() {
+
+    if (cameraConnected) {
+
+        setBeanState(
+            "ready",
+            "Ready when you are! Press Start Photo Session."
+        );
+
+    }
+
+    else {
+
+        setBeanState(
+            "",
+            "Connect the camera and I'll get us ready!"
+        );
+
+    }
+
+}
+
+
+function showBeanError(
+    message
+) {
+
+    setBeanState(
+        "error",
+        message ||
+        "Something went wrong."
     );
+
+}
 
 
 
@@ -1956,9 +2195,7 @@ function setSessionUI(
 async function connectCamera() {
 
     if (cameraConnected) {
-
         return;
-
     }
 
 
@@ -1969,6 +2206,12 @@ async function connectCamera() {
 
     showMessage(
         "Connecting to Sony α7C II..."
+    );
+
+
+    setBeanState(
+        "processing",
+        "Connecting to the camera..."
     );
 
 
@@ -2024,6 +2267,18 @@ async function connectCamera() {
             "success"
         );
 
+
+        setBeanState(
+            "celebrate",
+            "Camera connected! Let's take some photos!"
+        );
+
+
+        setTimeout(
+            resetBean,
+            1500
+        );
+
     }
 
     catch (error) {
@@ -2048,6 +2303,11 @@ async function connectCamera() {
         showMessage(
             error.message,
             "error"
+        );
+
+
+        showBeanError(
+            "I couldn't connect to the camera."
         );
 
     }
@@ -2117,6 +2377,12 @@ async function disconnectCamera() {
             "Camera disconnected."
         );
 
+
+        setBeanState(
+            "",
+            "Camera disconnected. I'll wait here!"
+        );
+
     }
 
     catch (error) {
@@ -2124,6 +2390,11 @@ async function disconnectCamera() {
         showMessage(
             error.message,
             "error"
+        );
+
+
+        showBeanError(
+            error.message
         );
 
     }
@@ -2145,15 +2416,18 @@ async function startSession() {
             "error"
         );
 
+
+        showBeanError(
+            "Connect the camera first!"
+        );
+
         return;
 
     }
 
 
     if (automationRunning) {
-
         return;
-
     }
 
 
@@ -2163,10 +2437,6 @@ async function startSession() {
 
     photoCount = 0;
 
-
-    /*
-        Hide the menu.
-    */
 
     setSessionUI(
         true
@@ -2218,14 +2488,16 @@ async function startSession() {
         );
 
 
+        setBeanState(
+            "countdown",
+            "Three photos! Get ready!"
+        );
+
+
         await sleep(
             1200
         );
 
-
-        /*
-            Capture all three photos.
-        */
 
         for (
             let photoNumber = 1;
@@ -2247,6 +2519,27 @@ async function startSession() {
                 );
 
 
+                if (
+                    photoNumber === 1
+                ) {
+
+                    setBeanState(
+                        "ready",
+                        "Nice! Try another pose!"
+                    );
+
+                }
+
+                else {
+
+                    setBeanState(
+                        "ready",
+                        "Great! One last photo!"
+                    );
+
+                }
+
+
                 await sleep(
                     1500
                 );
@@ -2266,6 +2559,12 @@ async function startSession() {
 
         showMessage(
             "All photos captured. Creating collage..."
+        );
+
+
+        setBeanState(
+            "processing",
+            "Great shots! I'm making your collage..."
         );
 
 
@@ -2298,6 +2597,11 @@ async function startSession() {
             "Session failed"
         );
 
+
+        showBeanError(
+            "Something went wrong during the photo session."
+        );
+
     }
 
     finally {
@@ -2319,7 +2623,7 @@ async function startSession() {
 
 
 // ============================================================
-// AUTOMATIC PHOTO
+// CAPTURE PHOTO
 // ============================================================
 
 async function captureAutomaticPhoto(
@@ -2345,6 +2649,12 @@ async function captureAutomaticPhoto(
 
     setStatus(
         `Preparing photo ${photoNumber}...`
+    );
+
+
+    setBeanState(
+        "countdown",
+        `Photo ${photoNumber} - get ready!`
     );
 
 
@@ -2388,6 +2698,12 @@ async function captureAutomaticPhoto(
         triggerFlash();
 
 
+        setBeanState(
+            "capture",
+            "Got it! 📸"
+        );
+
+
         photoCount++;
 
 
@@ -2429,6 +2745,11 @@ async function captureAutomaticPhoto(
         );
 
 
+        showBeanError(
+            "I couldn't take that photo."
+        );
+
+
         throw error;
 
     }
@@ -2463,6 +2784,28 @@ async function runCountdown() {
             number;
 
 
+        if (number === "3") {
+
+            beanSpeech.textContent =
+                "Get ready!";
+
+        }
+
+        else if (number === "2") {
+
+            beanSpeech.textContent =
+                "Hold that pose!";
+
+        }
+
+        else {
+
+            beanSpeech.textContent =
+                "Smile!";
+
+        }
+
+
         countdownNumber.style.animation =
             "none";
 
@@ -2483,6 +2826,10 @@ async function runCountdown() {
 
     countdownNumber.textContent =
         "📸";
+
+
+    beanSpeech.textContent =
+        "Cheese!";
 
 
     countdownNumber.style.animation =
@@ -2510,7 +2857,7 @@ async function runCountdown() {
 
 
 // ============================================================
-// CAMERA FLASH
+// FLASH
 // ============================================================
 
 function triggerFlash() {
@@ -2582,7 +2929,7 @@ function resetPhotoSteps() {
 
 
 // ============================================================
-// AUTOMATIC COLLAGE
+// CREATE COLLAGE
 // ============================================================
 
 async function createCollageAutomatically() {
@@ -2622,6 +2969,12 @@ async function createCollageAutomatically() {
         );
 
 
+        setBeanState(
+            "celebrate",
+            "Your collage is ready! ✨"
+        );
+
+
         collageImage.src =
             "/collage-image?t=" +
             Date.now();
@@ -2630,10 +2983,6 @@ async function createCollageAutomatically() {
         collageImage.style.display =
             "block";
 
-
-        /*
-            Show collage preview.
-        */
 
         collageOverlay.classList.add(
             "visible"
@@ -2644,11 +2993,6 @@ async function createCollageAutomatically() {
             "block";
 
 
-        /*
-            Make sure the other buttons
-            are available.
-        */
-
         retakeButton.style.display =
             "block";
 
@@ -2657,11 +3001,6 @@ async function createCollageAutomatically() {
             "block";
 
 
-        /*
-            Bring the menu back behind
-            the collage preview.
-        */
-
         setSessionUI(
             false
         );
@@ -2669,6 +3008,11 @@ async function createCollageAutomatically() {
     }
 
     catch (error) {
+
+        showBeanError(
+            "I couldn't create the collage."
+        );
+
 
         throw new Error(
             "Could not create collage: " +
@@ -2712,21 +3056,20 @@ function hideCollage() {
 
 
 // ============================================================
-// RETAKE SESSION
+// RETAKE
 // ============================================================
 
 async function retakeSession() {
 
     if (automationRunning) {
-
         return;
-
     }
 
 
     if (!cameraConnected) {
 
         hideCollage();
+
 
         setSessionUI(
             false
@@ -2739,21 +3082,18 @@ async function retakeSession() {
         );
 
 
+        showBeanError(
+            "We need to reconnect the camera first."
+        );
+
+
         return;
 
     }
 
 
-    /*
-        Close the collage preview.
-    */
-
     hideCollage();
 
-
-    /*
-        Reset the previous session.
-    */
 
     photoCount = 0;
 
@@ -2765,20 +3105,16 @@ async function retakeSession() {
     updatePhotoCount();
 
 
-    /*
-        Give the UI a short moment
-        to transition.
-    */
+    setBeanState(
+        "ready",
+        "Let's try that again!"
+    );
+
 
     await sleep(
         400
     );
 
-
-    /*
-        Start a completely new
-        automated session.
-    */
 
     startSession();
 
@@ -2792,16 +3128,8 @@ async function retakeSession() {
 
 function returnToMenu() {
 
-    /*
-        Close the collage preview.
-    */
-
     hideCollage();
 
-
-    /*
-        Reset session state.
-    */
 
     sessionActive = false;
 
@@ -2810,27 +3138,15 @@ function returnToMenu() {
     photoCount = 0;
 
 
-    /*
-        Reset progress.
-    */
-
     resetPhotoSteps();
 
     updatePhotoCount();
 
 
-    /*
-        Make the normal menu visible.
-    */
-
     setSessionUI(
         false
     );
 
-
-    /*
-        Reset status.
-    */
 
     setStatus(
         cameraConnected
@@ -2839,10 +3155,6 @@ function returnToMenu() {
     );
 
 
-    /*
-        Reset message.
-    */
-
     showMessage(
         cameraConnected
             ? "Ready for another photo session."
@@ -2850,20 +3162,18 @@ function returnToMenu() {
     );
 
 
-    /*
-        Enable Start button if the
-        camera is still connected.
-    */
-
     startButton.disabled =
         !cameraConnected;
+
+
+    resetBean();
 
 }
 
 
 
 // ============================================================
-// PRINT COLLAGE
+// PRINT
 // ============================================================
 
 async function printCollage() {
@@ -2874,6 +3184,12 @@ async function printCollage() {
 
     showMessage(
         "Sending collage to printer..."
+    );
+
+
+    setBeanState(
+        "processing",
+        "Printing your collage..."
     );
 
 
@@ -2911,6 +3227,12 @@ async function printCollage() {
             "Collage printed"
         );
 
+
+        setBeanState(
+            "celebrate",
+            "Printed! Thanks for visiting! 🎉"
+        );
+
     }
 
     catch (error) {
@@ -2918,6 +3240,11 @@ async function printCollage() {
         showMessage(
             error.message,
             "error"
+        );
+
+
+        showBeanError(
+            "I couldn't print the collage."
         );
 
     }
@@ -2975,10 +3302,13 @@ setStatus(
     "Camera disconnected"
 );
 
+
+resetBean();
+
+
 </script>
 
 
 </body>
 
 </html>
-```

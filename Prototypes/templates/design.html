@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>Photobooth Design Studio</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0f1115;
+            color: #ffffff;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        header {
+            min-height: 76px;
+            padding: 16px 28px;
+            background: #171a20;
+            border-bottom: 1px solid #2b3039;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .back-link {
+            color: #ffffff;
+            text-decoration: none;
+            background: #2b3039;
+            border-radius: 9px;
+            padding: 11px 16px;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 330px minmax(0, 1fr);
+            min-height: calc(100vh - 76px);
+        }
+
+        .sidebar {
+            padding: 20px;
+            background: #171a20;
+            border-right: 1px solid #2b3039;
+            overflow-y: auto;
+        }
+
+        .section {
+            padding: 18px 0;
+            border-bottom: 1px solid #2b3039;
+        }
+
+        .section:first-child {
+            padding-top: 0;
+        }
+
+        .section h2 {
+            margin: 0 0 14px;
+            font-size: 17px;
+        }
+
+        .field {
+            margin-bottom: 13px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #aeb5c0;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 11px;
+            color: #ffffff;
+            background: #0f1115;
+            border: 1px solid #363c47;
+            border-radius: 7px;
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            padding: 3px;
+            background: #0f1115;
+            border: 1px solid #363c47;
+            border-radius: 7px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 13px;
+            background: #303641;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #3b424f;
+        }
+
+        button.primary {
+            background: #2563eb;
+        }
+
+        button.success {
+            background: #16803d;
+        }
+
+        button.danger {
+            background: #a52626;
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        #designFile {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .editor-area {
+            min-width: 0;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hint {
+            color: #aeb5c0;
+            font-size: 13px;
+        }
+
+        .canvas-shell {
+            min-width: 0;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            background: #090b0e;
+            border: 1px solid #2b3039;
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        #designCanvas {
+            position: relative;
+            width: min(100%, 1080px);
+            aspect-ratio: 3 / 2;
+            flex: 0 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+            touch-action: none;
+        }
+
+        .fixed-cell {
+            position: absolute;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        #graphicPanel {
+            background: rgb(245, 245, 245);
+        }
+
+        .photo-placeholder {
+            background:
+                linear-gradient(
+                    135deg,
+                    #d7dbe1,
+                    #b9c0ca
+                );
+            color: #555d68;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: clamp(13px, 2vw, 26px);
+        }
+
+        #eventPreview,
+        #subtitlePreview,
+        #bottomPreview {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding: 0 8px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        #eventPreview {
+            font-weight: 700;
+        }
+
+        .design-element {
+            position: absolute;
+            z-index: 20;
+            cursor: move;
+            transform-origin: center center;
+            touch-action: none;
+        }
+
+        .design-element img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: fill;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .design-element.selected {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+
+        .resize-handle {
+            display: none;
+            position: absolute;
+            right: -9px;
+            bottom: -9px;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: nwse-resize;
+            z-index: 50;
+        }
+
+        .design-element.selected .resize-handle {
+            display: block;
+        }
+
+        .element-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-top: 12px;
+        }
+
+        .element-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px;
+            align-items: center;
+            padding: 8px;
+            border: 1px solid #303641;
+            border-radius: 7px;
+            background: #11141a;
+        }
+
+        .element-row.selected {
+            border-color: #2563eb;
+        }
+
+        .element-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+
+        #message {
+            display: none;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        #message.success {
+            display: block;
+            background: #123d23;
+        }
+
+        #message.error {
+            display: block;
+            background: #521b1b;
+        }
+
+        @media (max-width: 900px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: 0;
+                border-bottom: 1px solid #2b3039;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <h1>Photobooth Design Studio</h1>
+    <a class="back-link" href="/">
+        Back to Photobooth
+    </a>
+</header>
+
+<div class="workspace">
+    <aside class="sidebar">
+
+        <div class="section">
+            <h2>Design Images</h2>
+
+            <input
+                id="designFile"
+                type="file"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+            >
+
+            <button
+                class="primary"
+                type="button"
+                onclick="uploadDesign()"
+            >
+                Upload Image
+            </button>
+
+            <div
+                id="elementList"
+                class="element-list"
+            ></div>
+        </div>
+
+        <div class="section">
+            <h2>Selected Image</h2>
+
+            <div class="field">
+                <label>Rotation</label>
+                <input
+                    id="rotation"
+                    type="range"
+                    min="0"
+                    max="359"
+                    value="0"
+                    oninput="changeRotation()"
+                >
+                <div
+                    id="rotationValue"
+                    class="hint"
+                >
+                    0°
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button
+                    type="button"
+                    onclick="moveLayer(-1)"
+                >
+                    Back
+                </button>
+
+                <button
+                    type="button"
+                    onclick="moveLayer(1)"
+                >
+                    Forward
+                </button>
+
+                <button
+                    class="danger"
+                    type="button"
+                    onclick="deleteSelected()"
+                >
+                    Delete
+                </button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Event Text</h2>
+
+            <div class="field">
+                <label>Event Name</label>
+                <input
+                    id="eventName"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label>Subtitle</label>
+                <input
+                    id="eventSubtitle"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label>Bottom Text</label>
+                <input
+                    id="bottomText"
+                    type="text"
+                >
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Text Colors</h2>
+
+            <div class="two-columns">
+                <div class="field">
+                    <label>Event</label>
+                    <input
+                        id="eventTextColor"
+                        type="color"
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Subtitle</label>
+                    <input
+                        id="subtitleTextColor"
+                        type="color"
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Bottom</label>
+                    <input
+                        id="bottomTextColor"
+                        type="color"
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Panel</label>
+                    <input
+                        id="backgroundColor"
+                        type="color"
+                    >
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Font Sizes</h2>
+
+            <div class="field">
+                <label>Event Name</label>
+                <input
+                    id="eventFontSize"
+                    type="number"
+                    min="0.01"
+                    max="0.30"
+                    step="0.005"
+                >
+            </div>
+
+            <div class="field">
+                <label>Subtitle</label>
+                <input
+                    id="subtitleFontSize"
+                    type="number"
+                    min="0.01"
+                    max="0.30"
+                    step="0.005"
+                >
+            </div>
+
+            <div class="field">
+                <label>Bottom Text</label>
+                <input
+                    id="bottomFontSize"
+                    type="number"
+                    min="0.01"
+                    max="0.30"
+                    step="0.005"
+                >
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Collage Background</h2>
+
+            <div class="field">
+                <label>Style</label>
+                <select id="backgroundStyle">
+                    <option value="solid">
+                        Solid
+                    </option>
+                    <option value="gradient">
+                        Gradient
+                    </option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Solid Color</label>
+                <input
+                    id="collageBackgroundColor"
+                    type="color"
+                >
+            </div>
+
+            <div class="two-columns">
+                <div class="field">
+                    <label>Gradient Start</label>
+                    <input
+                        id="gradientStart"
+                        type="color"
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Gradient End</label>
+                    <input
+                        id="gradientEnd"
+                        type="color"
+                    >
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Gradient Direction</label>
+                <select id="gradientDirection">
+                    <option value="horizontal">
+                        Horizontal
+                    </option>
+                    <option value="vertical">
+                        Vertical
+                    </option>
+                    <option value="diagonal">
+                        Diagonal
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section">
+            <button
+                class="success"
+                type="button"
+                onclick="saveEverything()"
+            >
+                Save Design
+            </button>
+
+            <div
+                id="message"
+                style="margin-top: 12px;"
+            ></div>
+        </div>
+    </aside>
+
+    <main class="editor-area">
+        <div class="editor-toolbar">
+            <div>
+                <strong>1800 × 1200 layout</strong>
+                <div class="hint">
+                    Photos are locked. Drag or resize only uploaded design images.
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-shell">
+            <div id="designCanvas">
+                <div
+                    id="graphicPanel"
+                    class="fixed-cell"
+                >
+                    <div id="eventPreview"></div>
+                    <div id="subtitlePreview"></div>
+                    <div id="bottomPreview"></div>
+                </div>
+
+                <div
+                    id="photo1"
+                    class="fixed-cell photo-placeholder"
+                >
+                    PHOTO 1
+                </div>
+
+                <div
+                    id="photo2"
+                    class="fixed-cell photo-placeholder"
+                >
+                    PHOTO 2
+                </div>
+
+                <div
+                    id="photo3"
+                    class="fixed-cell photo-placeholder"
+                >
+                    PHOTO 3
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    let designElements = [];
+    let selectedId = null;
+
+    let interaction = null;
+
+    const canvas = document.getElementById(
+        "designCanvas"
+    );
+
+    function showMessage(
+        message,
+        type = "success"
+    ) {
+        const box = document.getElementById(
+            "message"
+        );
+
+        box.textContent = message;
+        box.className = type;
+    }
+
+    function selectedElement() {
+        return designElements.find(
+            item => item.id === selectedId
+        ) || null;
+    }
+
+    function setFixedLayout() {
+        const width = 1800;
+        const height = 1200;
+        const margin = 50;
+        const gap = 25;
+
+        const cellWidth = (
+            width - margin * 2 - gap
+        ) / 2;
+
+        const cellHeight = (
+            height - margin * 2 - gap
+        ) / 2;
+
+        const xLeft = margin;
+        const xRight = margin + cellWidth + gap;
+        const yTop = margin;
+        const yBottom = margin + cellHeight + gap;
+
+        placeFixedCell(
+            "graphicPanel",
+            xLeft,
+            yTop,
+            cellWidth,
+            cellHeight,
+            width,
+            height
+        );
+
+        placeFixedCell(
+            "photo1",
+            xRight,
+            yTop,
+            cellWidth,
+            cellHeight,
+            width,
+            height
+        );
+
+        placeFixedCell(
+            "photo2",
+            xLeft,
+            yBottom,
+            cellWidth,
+            cellHeight,
+            width,
+            height
+        );
+
+        placeFixedCell(
+            "photo3",
+            xRight,
+            yBottom,
+            cellWidth,
+            cellHeight,
+            width,
+            height
+        );
+    }
+
+    function placeFixedCell(
+        id,
+        x,
+        y,
+        width,
+        height,
+        canvasWidth,
+        canvasHeight
+    ) {
+        const element = document.getElementById(id);
+
+        element.style.left =
+            `${x / canvasWidth * 100}%`;
+
+        element.style.top =
+            `${y / canvasHeight * 100}%`;
+
+        element.style.width =
+            `${width / canvasWidth * 100}%`;
+
+        element.style.height =
+            `${height / canvasHeight * 100}%`;
+    }
+
+    async function loadDesign() {
+        try {
+            const response = await fetch(
+                "/design-config"
+            );
+
+            const data = await response.json();
+
+            document.getElementById(
+                "eventName"
+            ).value = data.event_name || "";
+
+            document.getElementById(
+                "eventSubtitle"
+            ).value = data.event_subtitle || "";
+
+            document.getElementById(
+                "bottomText"
+            ).value = data.bottom_text || "";
+
+            document.getElementById(
+                "backgroundColor"
+            ).value = data.background_color;
+
+            document.getElementById(
+                "eventTextColor"
+            ).value = data.event_text_color;
+
+            document.getElementById(
+                "subtitleTextColor"
+            ).value = data.subtitle_text_color;
+
+            document.getElementById(
+                "bottomTextColor"
+            ).value = data.bottom_text_color;
+
+            document.getElementById(
+                "eventFontSize"
+            ).value = data.event_font_size;
+
+            document.getElementById(
+                "subtitleFontSize"
+            ).value = data.subtitle_font_size;
+
+            document.getElementById(
+                "bottomFontSize"
+            ).value = data.bottom_font_size;
+
+            document.getElementById(
+                "backgroundStyle"
+            ).value =
+                data.collage_background_style;
+
+            document.getElementById(
+                "collageBackgroundColor"
+            ).value =
+                data.collage_background_color;
+
+            document.getElementById(
+                "gradientStart"
+            ).value =
+                data.collage_gradient_start;
+
+            document.getElementById(
+                "gradientEnd"
+            ).value =
+                data.collage_gradient_end;
+
+            document.getElementById(
+                "gradientDirection"
+            ).value =
+                data.collage_gradient_direction;
+
+            designElements = (
+                data.design_elements || []
+            ).sort(
+                (a, b) =>
+                    (a.z_index || 0)
+                    - (b.z_index || 0)
+            );
+
+            renderAll();
+        }
+        catch (error) {
+            showMessage(
+                "Could not load design: "
+                + error.message,
+                "error"
+            );
+        }
+    }
+
+    function renderAll() {
+        updateBackground();
+        updateTextPreview();
+        renderDesignElements();
+        renderElementList();
+        updateSelectedControls();
+    }
+
+    function updateBackground() {
+        const style = document.getElementById(
+            "backgroundStyle"
+        ).value;
+
+        const solid = document.getElementById(
+            "collageBackgroundColor"
+        ).value;
+
+        const start = document.getElementById(
+            "gradientStart"
+        ).value;
+
+        const end = document.getElementById(
+            "gradientEnd"
+        ).value;
+
+        const direction = document.getElementById(
+            "gradientDirection"
+        ).value;
+
+        if (style === "solid") {
+            canvas.style.background = solid;
+            return;
+        }
+
+        let cssDirection = "to right";
+
+        if (direction === "vertical") {
+            cssDirection = "to bottom";
+        }
+        else if (direction === "diagonal") {
+            cssDirection = "to bottom right";
+        }
+
+        canvas.style.background =
+            `linear-gradient(${cssDirection}, ${start}, ${end})`;
+    }
+
+    function updateTextPreview() {
+        const panel = document.getElementById(
+            "graphicPanel"
+        );
+
+        panel.style.background =
+            document.getElementById(
+                "backgroundColor"
+            ).value;
+
+        const event = document.getElementById(
+            "eventPreview"
+        );
+
+        const subtitle = document.getElementById(
+            "subtitlePreview"
+        );
+
+        const bottom = document.getElementById(
+            "bottomPreview"
+        );
+
+        event.textContent =
+            document.getElementById(
+                "eventName"
+            ).value;
+
+        subtitle.textContent =
+            document.getElementById(
+                "eventSubtitle"
+            ).value;
+
+        bottom.textContent =
+            document.getElementById(
+                "bottomText"
+            ).value;
+
+        event.style.color =
+            document.getElementById(
+                "eventTextColor"
+            ).value;
+
+        subtitle.style.color =
+            document.getElementById(
+                "subtitleTextColor"
+            ).value;
+
+        bottom.style.color =
+            document.getElementById(
+                "bottomTextColor"
+            ).value;
+
+        const panelWidth =
+            panel.getBoundingClientRect().width;
+
+        const panelHeight =
+            panel.getBoundingClientRect().height;
+
+        const eventSize =
+            Number(
+                document.getElementById(
+                    "eventFontSize"
+                ).value
+            );
+
+        const subtitleSize =
+            Number(
+                document.getElementById(
+                    "subtitleFontSize"
+                ).value
+            );
+
+        const bottomSize =
+            Number(
+                document.getElementById(
+                    "bottomFontSize"
+                ).value
+            );
+
+        event.style.fontSize =
+            `${Math.max(8, panelWidth * eventSize)}px`;
+
+        subtitle.style.fontSize =
+            `${Math.max(8, panelWidth * subtitleSize)}px`;
+
+        bottom.style.fontSize =
+            `${Math.max(8, panelWidth * bottomSize)}px`;
+
+        event.style.top =
+            `${0.08 * panelHeight}px`;
+
+        subtitle.style.top =
+            `${0.21 * panelHeight}px`;
+
+        bottom.style.top =
+            `${0.88 * panelHeight}px`;
+    }
+
+    function renderDesignElements() {
+        canvas.querySelectorAll(
+            ".design-element"
+        ).forEach(
+            item => item.remove()
+        );
+
+        designElements.forEach(
+            (element, index) => {
+                element.z_index = index;
+
+                const box = document.createElement(
+                    "div"
+                );
+
+                box.className =
+                    "design-element"
+                    + (
+                        element.id === selectedId
+                            ? " selected"
+                            : ""
+                    );
+
+                box.dataset.id = element.id;
+
+                box.style.left =
+                    `${element.x * 100}%`;
+
+                box.style.top =
+                    `${element.y * 100}%`;
+
+                box.style.width =
+                    `${element.width * 100}%`;
+
+                box.style.height =
+                    `${element.height * 100}%`;
+
+                box.style.zIndex =
+                    20 + index;
+
+                box.style.transform =
+                    `rotate(${element.rotation || 0}deg)`;
+
+                const image = document.createElement(
+                    "img"
+                );
+
+                image.src =
+                    "/design-image/"
+                    + encodeURIComponent(
+                        element.filename
+                    );
+
+                const handle = document.createElement(
+                    "div"
+                );
+
+                handle.className =
+                    "resize-handle";
+
+                box.appendChild(image);
+                box.appendChild(handle);
+                canvas.appendChild(box);
+
+                box.addEventListener(
+                    "pointerdown",
+                    startMove
+                );
+
+                handle.addEventListener(
+                    "pointerdown",
+                    startResize
+                );
+            }
+        );
+    }
+
+    function selectElement(id) {
+        selectedId = id;
+        renderDesignElements();
+        renderElementList();
+        updateSelectedControls();
+    }
+
+    function startMove(event) {
+        if (
+            event.target.classList.contains(
+                "resize-handle"
+            )
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const id = event.currentTarget.dataset.id;
+        selectElement(id);
+
+        const element = selectedElement();
+
+        interaction = {
+            type: "move",
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            startElementX: element.x,
+            startElementY: element.y
+        };
+
+        canvas.setPointerCapture(
+            event.pointerId
+        );
+    }
+
+    function startResize(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const box = event.currentTarget.parentElement;
+        const id = box.dataset.id;
+
+        selectElement(id);
+
+        const element = selectedElement();
+
+        interaction = {
+            type: "resize",
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            startWidth: element.width,
+            startHeight: element.height
+        };
+
+        canvas.setPointerCapture(
+            event.pointerId
+        );
+    }
+
+    canvas.addEventListener(
+        "pointermove",
+        function(event) {
+            if (!interaction) {
+                return;
+            }
+
+            const element = selectedElement();
+
+            if (!element) {
+                return;
+            }
+
+            const rect =
+                canvas.getBoundingClientRect();
+
+            const dx =
+                (event.clientX - interaction.startX)
+                / rect.width;
+
+            const dy =
+                (event.clientY - interaction.startY)
+                / rect.height;
+
+            if (interaction.type === "move") {
+                element.x = Math.max(
+                    0,
+                    Math.min(
+                        1 - element.width,
+                        interaction.startElementX + dx
+                    )
+                );
+
+                element.y = Math.max(
+                    0,
+                    Math.min(
+                        1 - element.height,
+                        interaction.startElementY + dy
+                    )
+                );
+            }
+            else if (
+                interaction.type === "resize"
+            ) {
+                element.width = Math.max(
+                    0.02,
+                    Math.min(
+                        1 - element.x,
+                        interaction.startWidth + dx
+                    )
+                );
+
+                element.height = Math.max(
+                    0.02,
+                    Math.min(
+                        1 - element.y,
+                        interaction.startHeight + dy
+                    )
+                );
+            }
+
+            const box = canvas.querySelector(
+                `.design-element[data-id="${element.id}"]`
+            );
+
+            if (box) {
+                box.style.left =
+                    `${element.x * 100}%`;
+
+                box.style.top =
+                    `${element.y * 100}%`;
+
+                box.style.width =
+                    `${element.width * 100}%`;
+
+                box.style.height =
+                    `${element.height * 100}%`;
+            }
+        }
+    );
+
+    function stopInteraction(event) {
+        if (
+            interaction
+            && event.pointerId === interaction.pointerId
+        ) {
+            interaction = null;
+        }
+    }
+
+    canvas.addEventListener(
+        "pointerup",
+        stopInteraction
+    );
+
+    canvas.addEventListener(
+        "pointercancel",
+        stopInteraction
+    );
+
+    canvas.addEventListener(
+        "pointerdown",
+        function(event) {
+            if (event.target === canvas) {
+                selectedId = null;
+                renderDesignElements();
+                renderElementList();
+                updateSelectedControls();
+            }
+        }
+    );
+
+    function renderElementList() {
+        const list = document.getElementById(
+            "elementList"
+        );
+
+        list.innerHTML = "";
+
+        if (designElements.length === 0) {
+            list.innerHTML =
+                '<div class="hint">No design images uploaded.</div>';
+            return;
+        }
+
+        designElements.forEach(
+            element => {
+                const row = document.createElement(
+                    "div"
+                );
+
+                row.className =
+                    "element-row"
+                    + (
+                        element.id === selectedId
+                            ? " selected"
+                            : ""
+                    );
+
+                const name = document.createElement(
+                    "div"
+                );
+
+                name.className =
+                    "element-name";
+
+                name.textContent =
+                    element.original_name
+                    || element.filename;
+
+                const button = document.createElement(
+                    "button"
+                );
+
+                button.type = "button";
+                button.textContent = "Select";
+
+                button.onclick = () =>
+                    selectElement(element.id);
+
+                row.appendChild(name);
+                row.appendChild(button);
+                list.appendChild(row);
+            }
+        );
+    }
+
+    function updateSelectedControls() {
+        const element = selectedElement();
+
+        const rotation = document.getElementById(
+            "rotation"
+        );
+
+        const value = document.getElementById(
+            "rotationValue"
+        );
+
+        if (!element) {
+            rotation.disabled = true;
+            rotation.value = 0;
+            value.textContent = "No image selected";
+            return;
+        }
+
+        rotation.disabled = false;
+        rotation.value = element.rotation || 0;
+        value.textContent =
+            `${Math.round(element.rotation || 0)}°`;
+    }
+
+    function changeRotation() {
+        const element = selectedElement();
+
+        if (!element) {
+            return;
+        }
+
+        element.rotation = Number(
+            document.getElementById(
+                "rotation"
+            ).value
+        );
+
+        document.getElementById(
+            "rotationValue"
+        ).textContent =
+            `${Math.round(element.rotation)}°`;
+
+        const box = canvas.querySelector(
+            `.design-element[data-id="${element.id}"]`
+        );
+
+        if (box) {
+            box.style.transform =
+                `rotate(${element.rotation}deg)`;
+        }
+    }
+
+    function moveLayer(direction) {
+        const element = selectedElement();
+
+        if (!element) {
+            showMessage(
+                "Select a design image first.",
+                "error"
+            );
+            return;
+        }
+
+        const index = designElements.findIndex(
+            item => item.id === element.id
+        );
+
+        const newIndex = Math.max(
+            0,
+            Math.min(
+                designElements.length - 1,
+                index + direction
+            )
+        );
+
+        if (newIndex === index) {
+            return;
+        }
+
+        designElements.splice(index, 1);
+        designElements.splice(
+            newIndex,
+            0,
+            element
+        );
+
+        renderDesignElements();
+        renderElementList();
+    }
+
+    async function uploadDesign() {
+        const input = document.getElementById(
+            "designFile"
+        );
+
+        if (!input.files.length) {
+            showMessage(
+                "Choose a JPG, JPEG or PNG image first.",
+                "error"
+            );
+            return;
+        }
+
+        const formData = new FormData();
+
+        formData.append(
+            "image",
+            input.files[0]
+        );
+
+        try {
+            const response = await fetch(
+                "/upload-design",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.message
+                    || "Upload failed."
+                );
+            }
+
+            designElements.push(
+                data.element
+            );
+
+            selectedId =
+                data.element.id;
+
+            input.value = "";
+
+            renderDesignElements();
+            renderElementList();
+            updateSelectedControls();
+
+            showMessage(
+                "Design image uploaded."
+            );
+        }
+        catch (error) {
+            showMessage(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+    async function deleteSelected() {
+        const element = selectedElement();
+
+        if (!element) {
+            showMessage(
+                "Select a design image first.",
+                "error"
+            );
+            return;
+        }
+
+        if (
+            !confirm(
+                "Delete this design image?"
+            )
+        ) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                "/delete-design/"
+                + encodeURIComponent(
+                    element.id
+                ),
+                {
+                    method: "POST"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.message
+                    || "Delete failed."
+                );
+            }
+
+            designElements =
+                designElements.filter(
+                    item =>
+                        item.id !== element.id
+                );
+
+            selectedId = null;
+
+            renderDesignElements();
+            renderElementList();
+            updateSelectedControls();
+
+            showMessage(
+                "Design image deleted."
+            );
+        }
+        catch (error) {
+            showMessage(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+    async function saveEverything() {
+        try {
+            const settings = {
+                event_name:
+                    document.getElementById(
+                        "eventName"
+                    ).value,
+
+                event_subtitle:
+                    document.getElementById(
+                        "eventSubtitle"
+                    ).value,
+
+                bottom_text:
+                    document.getElementById(
+                        "bottomText"
+                    ).value,
+
+                background_color:
+                    document.getElementById(
+                        "backgroundColor"
+                    ).value,
+
+                event_text_color:
+                    document.getElementById(
+                        "eventTextColor"
+                    ).value,
+
+                subtitle_text_color:
+                    document.getElementById(
+                        "subtitleTextColor"
+                    ).value,
+
+                bottom_text_color:
+                    document.getElementById(
+                        "bottomTextColor"
+                    ).value,
+
+                event_font_size:
+                    Number(
+                        document.getElementById(
+                            "eventFontSize"
+                        ).value
+                    ),
+
+                subtitle_font_size:
+                    Number(
+                        document.getElementById(
+                            "subtitleFontSize"
+                        ).value
+                    ),
+
+                bottom_font_size:
+                    Number(
+                        document.getElementById(
+                            "bottomFontSize"
+                        ).value
+                    ),
+
+                collage_background_style:
+                    document.getElementById(
+                        "backgroundStyle"
+                    ).value,
+
+                collage_background_color:
+                    document.getElementById(
+                        "collageBackgroundColor"
+                    ).value,
+
+                collage_gradient_start:
+                    document.getElementById(
+                        "gradientStart"
+                    ).value,
+
+                collage_gradient_end:
+                    document.getElementById(
+                        "gradientEnd"
+                    ).value,
+
+                collage_gradient_direction:
+                    document.getElementById(
+                        "gradientDirection"
+                    ).value
+            };
+
+            const settingsResponse =
+                await fetch(
+                    "/save-design",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body:
+                            JSON.stringify(
+                                settings
+                            )
+                    }
+                );
+
+            const settingsResult =
+                await settingsResponse.json();
+
+            if (
+                !settingsResponse.ok
+                || !settingsResult.success
+            ) {
+                throw new Error(
+                    settingsResult.message
+                    || "Could not save design settings."
+                );
+            }
+
+            const elementResponse =
+                await fetch(
+                    "/save-design-elements",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body:
+                            JSON.stringify({
+                                design_elements:
+                                    designElements
+                            })
+                    }
+                );
+
+            const elementResult =
+                await elementResponse.json();
+
+            if (
+                !elementResponse.ok
+                || !elementResult.success
+            ) {
+                throw new Error(
+                    elementResult.message
+                    || "Could not save design images."
+                );
+            }
+
+            designElements.forEach(
+                (item, index) => {
+                    item.z_index = index;
+                }
+            );
+
+            showMessage(
+                "Design saved successfully."
+            );
+        }
+        catch (error) {
+            showMessage(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+    [
+        "eventName",
+        "eventSubtitle",
+        "bottomText",
+        "backgroundColor",
+        "eventTextColor",
+        "subtitleTextColor",
+        "bottomTextColor",
+        "eventFontSize",
+        "subtitleFontSize",
+        "bottomFontSize"
+    ].forEach(
+        id => {
+            document.getElementById(
+                id
+            ).addEventListener(
+                "input",
+                updateTextPreview
+            );
+        }
+    );
+
+    [
+        "backgroundStyle",
+        "collageBackgroundColor",
+        "gradientStart",
+        "gradientEnd",
+        "gradientDirection"
+    ].forEach(
+        id => {
+            document.getElementById(
+                id
+            ).addEventListener(
+                "input",
+                updateBackground
+            );
+
+            document.getElementById(
+                id
+            ).addEventListener(
+                "change",
+                updateBackground
+            );
+        }
+    );
+
+    window.addEventListener(
+        "resize",
+        updateTextPreview
+    );
+
+    setFixedLayout();
+    loadDesign();
+</script>
+</body>
+</html>

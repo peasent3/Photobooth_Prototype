@@ -1,202 +1,801 @@
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps
+
+import design_config
 
 
-PHOTO_FOLDER = Path(r"C:\Photobooth\Photos")
+# ============================================================
+# CONFIGURATION
+# ============================================================
 
-# Canon SELPHY 4x6 paper
-DPI = 300
+PHOTO_FOLDER = design_config.PHOTO_FOLDER
 
-# 6 x 4 inches at 300 DPI
-CANVAS_WIDTH = 1800
-CANVAS_HEIGHT = 1200
+OUTPUT_FILE = design_config.OUTPUT_FILE
 
-# Overall outer margin
-OUTER_MARGIN = 30
+CANVAS_WIDTH = design_config.CANVAS_WIDTH
 
-# Gap between photos
-PHOTO_GAP = 20
+CANVAS_HEIGHT = design_config.CANVAS_HEIGHT
 
-BACKGROUND_COLOR = "white"
+MARGIN = design_config.MARGIN
 
-
-def get_last_n_photos(n=4):
-
-    photos = list(
-        PHOTO_FOLDER.glob("*.jpg")
-    )
-
-    photos.sort(
-        key=lambda p: p.stat().st_ctime
-    )
-
-    return photos[-n:]
+GAP = design_config.GAP
 
 
-def _prepare_photo(image_path, width, height):
+# ============================================================
+# FONT LOADING
+# ============================================================
 
-    image = Image.open(image_path).convert("RGB")
+def get_font(font_path, size):
 
-    # Crop the photo to exactly fill its space
-    image = ImageOps.fit(
+    font_path = Path(font_path)
+
+    if font_path.exists():
+
+        try:
+
+            return ImageFont.truetype(
+                str(font_path),
+                size
+            )
+
+        except Exception:
+
+            pass
+
+    return ImageFont.load_default()
+
+
+# ============================================================
+# FIT IMAGE
+# ============================================================
+
+def fit_image(image, size):
+
+    return ImageOps.fit(
         image,
-        (width, height),
+        size,
         method=Image.Resampling.LANCZOS,
         centering=(0.5, 0.5)
     )
 
-    return image
+
+# ============================================================
+# CREATE COLLAGE BACKGROUND
+# ============================================================
+
+def create_collage_background(width, height):
+
+    style = (
+        design_config.COLLAGE_BACKGROUND_STYLE
+        .lower()
+    )
 
 
-def make_collage(
-    photo_paths,
-    output_path=None
-):
+    # ========================================================
+    # SOLID
+    # ========================================================
 
-    if len(photo_paths) != 4:
+    if style == "solid":
 
-        raise ValueError(
-            "Exactly 4 photos are required."
+        return Image.new(
+            "RGB",
+            (width, height),
+            design_config.COLLAGE_BACKGROUND_COLOR
         )
 
 
     # ========================================================
-    # Calculate photo dimensions
+    # GRADIENT
+    # ========================================================
+
+    if style == "gradient":
+
+        start_color = (
+            design_config.COLLAGE_GRADIENT_START
+        )
+
+        end_color = (
+            design_config.COLLAGE_GRADIENT_END
+        )
+
+        direction = (
+            design_config.COLLAGE_GRADIENT_DIRECTION
+            .lower()
+        )
+
+
+        background = Image.new(
+            "RGB",
+            (width, height)
+        )
+
+        draw = ImageDraw.Draw(
+            background
+        )
+
+
+        # ====================================================
+        # HORIZONTAL
+        # ====================================================
+
+        if direction == "horizontal":
+
+            for x in range(width):
+
+                position = (
+                    x /
+                    max(width - 1, 1)
+                )
+
+                color = tuple(
+                    int(
+                        start_color[i]
+                        +
+                        (
+                            end_color[i]
+                            -
+                            start_color[i]
+                        )
+                        *
+                        position
+                    )
+                    for i in range(3)
+                )
+
+                draw.line(
+                    [
+                        (x, 0),
+                        (x, height)
+                    ],
+                    fill=color
+                )
+
+
+        # ====================================================
+        # VERTICAL
+        # ====================================================
+
+        elif direction == "vertical":
+
+            for y in range(height):
+
+                position = (
+                    y /
+                    max(height - 1, 1)
+                )
+
+                color = tuple(
+                    int(
+                        start_color[i]
+                        +
+                        (
+                            end_color[i]
+                            -
+                            start_color[i]
+                        )
+                        *
+                        position
+                    )
+                    for i in range(3)
+                )
+
+                draw.line(
+                    [
+                        (0, y),
+                        (width, y)
+                    ],
+                    fill=color
+                )
+
+
+        # ====================================================
+        # DIAGONAL
+        # ====================================================
+
+        elif direction == "diagonal":
+
+            for y in range(height):
+
+                position_y = (
+                    y /
+                    max(height - 1, 1)
+                )
+
+                for x in range(width):
+
+                    position_x = (
+                        x /
+                        max(width - 1, 1)
+                    )
+
+                    position = (
+                        position_x +
+                        position_y
+                    ) / 2
+
+                    color = tuple(
+                        int(
+                            start_color[i]
+                            +
+                            (
+                                end_color[i]
+                                -
+                                start_color[i]
+                            )
+                            *
+                            position
+                        )
+                        for i in range(3)
+                    )
+
+                    draw.point(
+                        (x, y),
+                        fill=color
+                    )
+
+
+        else:
+
+            return Image.new(
+                "RGB",
+                (width, height),
+                start_color
+            )
+
+
+        return background
+
+
+    # ========================================================
+    # UNKNOWN STYLE
+    # ========================================================
+
+    return Image.new(
+        "RGB",
+        (width, height),
+        design_config.COLLAGE_BACKGROUND_COLOR
+    )
+
+
+# ============================================================
+# CREATE GRAPHIC PANEL
+# ============================================================
+
+def create_graphic_panel(width, height):
+
+    panel = Image.new(
+        "RGB",
+        (width, height),
+        design_config.GRAPHIC_BACKGROUND
+    )
+
+    draw = ImageDraw.Draw(
+        panel
+    )
+
+
+    # ========================================================
+    # EVENT NAME
+    # ========================================================
+
+    event_name = (
+        design_config.EVENT_NAME
+    )
+
+    if event_name:
+
+        font_size = int(
+            width *
+            design_config.EVENT_FONT_SIZE_PERCENT
+        )
+
+        font = get_font(
+            design_config.EVENT_FONT,
+            font_size
+        )
+
+        bbox = draw.textbbox(
+            (0, 0),
+            event_name,
+            font=font
+        )
+
+        text_width = (
+            bbox[2] -
+            bbox[0]
+        )
+
+        text_x = (
+            width -
+            text_width
+        ) // 2
+
+        text_y = int(
+            height *
+            design_config.EVENT_NAME_TOP_PERCENT
+        )
+
+        draw.text(
+            (
+                text_x,
+                text_y
+            ),
+            event_name,
+            fill=design_config.EVENT_TEXT_COLOR,
+            font=font
+        )
+
+
+    # ========================================================
+    # SUBTITLE
+    # ========================================================
+
+    subtitle = (
+        design_config.EVENT_SUBTITLE
+    )
+
+    if subtitle:
+
+        subtitle_font_size = int(
+            width *
+            design_config.SUBTITLE_FONT_SIZE_PERCENT
+        )
+
+        subtitle_font = get_font(
+            design_config.SUBTITLE_FONT,
+            subtitle_font_size
+        )
+
+        bbox = draw.textbbox(
+            (0, 0),
+            subtitle,
+            font=subtitle_font
+        )
+
+        subtitle_width = (
+            bbox[2] -
+            bbox[0]
+        )
+
+        subtitle_x = (
+            width -
+            subtitle_width
+        ) // 2
+
+        subtitle_y = int(
+            height *
+            design_config.SUBTITLE_TOP_PERCENT
+        )
+
+        draw.text(
+            (
+                subtitle_x,
+                subtitle_y
+            ),
+            subtitle,
+            fill=design_config.SUBTITLE_TEXT_COLOR,
+            font=subtitle_font
+        )
+
+
+    # ========================================================
+    # BOTTOM TEXT
+    # ========================================================
+
+    bottom_text = (
+        design_config.BOTTOM_TEXT
+    )
+
+    if bottom_text:
+
+        bottom_font_size = int(
+            width *
+            design_config.BOTTOM_FONT_SIZE_PERCENT
+        )
+
+        bottom_font = get_font(
+            design_config.BOTTOM_FONT,
+            bottom_font_size
+        )
+
+        bbox = draw.textbbox(
+            (0, 0),
+            bottom_text,
+            font=bottom_font
+        )
+
+        bottom_width = (
+            bbox[2] -
+            bbox[0]
+        )
+
+        bottom_x = (
+            width -
+            bottom_width
+        ) // 2
+
+        bottom_y = int(
+            height *
+            design_config.BOTTOM_TEXT_TOP_PERCENT
+        )
+
+        draw.text(
+            (
+                bottom_x,
+                bottom_y
+            ),
+            bottom_text,
+            fill=design_config.BOTTOM_TEXT_COLOR,
+            font=bottom_font
+        )
+
+
+    return panel
+
+
+# ============================================================
+# PLACE DESIGN ELEMENTS
+# ============================================================
+
+def place_design_elements(canvas):
+
+    for element in design_config.DESIGN_ELEMENTS:
+
+        try:
+
+            filename = element.get(
+                "filename"
+            )
+
+            if not filename:
+                continue
+
+
+            image_path = (
+                design_config.DESIGN_FOLDER /
+                filename
+            )
+
+
+            if not image_path.exists():
+
+                print(
+                    f"Design image not found: "
+                    f"{image_path}"
+                )
+
+                continue
+
+
+            image = Image.open(
+                image_path
+            ).convert("RGBA")
+
+
+            # =================================================
+            # NORMALIZED POSITION
+            # =================================================
+
+            x = float(
+                element.get(
+                    "x",
+                    0.0
+                )
+            )
+
+            y = float(
+                element.get(
+                    "y",
+                    0.0
+                )
+            )
+
+            width = float(
+                element.get(
+                    "width",
+                    0.20
+                )
+            )
+
+            height = float(
+                element.get(
+                    "height",
+                    0.20
+                )
+            )
+
+
+            # =================================================
+            # CONVERT TO PIXELS
+            # =================================================
+
+            pixel_width = max(
+                1,
+                int(
+                    CANVAS_WIDTH *
+                    width
+                )
+            )
+
+            pixel_height = max(
+                1,
+                int(
+                    CANVAS_HEIGHT *
+                    height
+                )
+            )
+
+
+            pixel_x = int(
+                CANVAS_WIDTH *
+                x
+            )
+
+            pixel_y = int(
+                CANVAS_HEIGHT *
+                y
+            )
+
+
+            # =================================================
+            # RESIZE
+            # =================================================
+
+            image.thumbnail(
+                (
+                    pixel_width,
+                    pixel_height
+                ),
+                Image.Resampling.LANCZOS
+            )
+
+
+            # =================================================
+            # PASTE
+            # =================================================
+
+            canvas.paste(
+                image,
+                (
+                    pixel_x,
+                    pixel_y
+                ),
+                image
+            )
+
+
+            print(
+                f"Placed design element: "
+                f"{filename} "
+                f"at ({pixel_x}, {pixel_y})"
+            )
+
+
+        except Exception as error:
+
+            print(
+                f"Could not place design element: "
+                f"{error}"
+            )
+
+
+# ============================================================
+# MAKE COLLAGE
+# ============================================================
+
+def make_collage(photo_paths):
+
+    if len(photo_paths) != 3:
+
+        raise ValueError(
+            "A 3-photo collage requires exactly 3 photos."
+        )
+
+
+    # ========================================================
+    # CREATE BACKGROUND
+    # ========================================================
+
+    canvas = create_collage_background(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT
+    )
+
+
+    # ========================================================
+    # CALCULATE PHOTO CELLS
     # ========================================================
 
     available_width = (
         CANVAS_WIDTH
-        - (OUTER_MARGIN * 2)
-        - PHOTO_GAP
+        -
+        (MARGIN * 2)
+        -
+        GAP
     )
 
     available_height = (
         CANVAS_HEIGHT
-        - (OUTER_MARGIN * 2)
-        - PHOTO_GAP
+        -
+        (MARGIN * 2)
+        -
+        GAP
     )
 
-    photo_width = available_width // 2
-    photo_height = available_height // 2
+    cell_width = (
+        available_width //
+        2
+    )
+
+    cell_height = (
+        available_height //
+        2
+    )
 
 
     # ========================================================
-    # Create 6x4 canvas
+    # CREATE GRAPHIC PANEL
     # ========================================================
 
-    canvas = Image.new(
-        "RGB",
+    graphic_panel = create_graphic_panel(
+        cell_width,
+        cell_height
+    )
+
+
+    # ========================================================
+    # LOAD PHOTOS
+    # ========================================================
+
+    photos = []
+
+
+    for photo_path in photo_paths:
+
+        photo_path = Path(
+            photo_path
+        )
+
+
+        if not photo_path.exists():
+
+            raise FileNotFoundError(
+                f"Photo not found: {photo_path}"
+            )
+
+
+        image = Image.open(
+            photo_path
+        ).convert("RGB")
+
+
+        image = fit_image(
+            image,
+            (
+                cell_width,
+                cell_height
+            )
+        )
+
+
+        photos.append(
+            image
+        )
+
+
+    # ========================================================
+    # PHOTO POSITIONS
+    # ========================================================
+
+    x_left = MARGIN
+
+    x_right = (
+        MARGIN
+        +
+        cell_width
+        +
+        GAP
+    )
+
+    y_top = MARGIN
+
+    y_bottom = (
+        MARGIN
+        +
+        cell_height
+        +
+        GAP
+    )
+
+
+    # ========================================================
+    # GRAPHIC PANEL
+    # ========================================================
+
+    canvas.paste(
+        graphic_panel,
         (
-            CANVAS_WIDTH,
-            CANVAS_HEIGHT
-        ),
-        BACKGROUND_COLOR
+            x_left,
+            y_top
+        )
     )
 
 
     # ========================================================
-    # Photo positions
+    # PHOTO 1
     # ========================================================
 
-    x1 = OUTER_MARGIN
-
-    x2 = (
-        OUTER_MARGIN
-        + photo_width
-        + PHOTO_GAP
-    )
-
-    y1 = OUTER_MARGIN
-
-    y2 = (
-        OUTER_MARGIN
-        + photo_height
-        + PHOTO_GAP
+    canvas.paste(
+        photos[0],
+        (
+            x_right,
+            y_top
+        )
     )
 
 
-    positions = [
-        (x1, y1),
-        (x2, y1),
-        (x1, y2),
-        (x2, y2)
-    ]
-
-
     # ========================================================
-    # Add photos
+    # PHOTO 2
     # ========================================================
 
-    for photo_path, position in zip(
-        photo_paths,
-        positions
-    ):
-
-        photo = _prepare_photo(
-            photo_path,
-            photo_width,
-            photo_height
+    canvas.paste(
+        photos[1],
+        (
+            x_left,
+            y_bottom
         )
-
-        canvas.paste(
-            photo,
-            position
-        )
+    )
 
 
     # ========================================================
-    # Save
+    # PHOTO 3
     # ========================================================
 
-    if output_path is None:
-
-        output_path = (
-            PHOTO_FOLDER
-            / "photobooth_collage.jpg"
+    canvas.paste(
+        photos[2],
+        (
+            x_right,
+            y_bottom
         )
+    )
 
-    output_path = Path(output_path)
 
+    # ========================================================
+    # DESIGN ELEMENTS
+    #
+    # IMPORTANT:
+    #
+    # These are placed AFTER the photos.
+    #
+    # This means the uploaded graphics appear on top
+    # of the collage.
+    # ========================================================
+
+    place_design_elements(
+        canvas
+    )
+
+
+    # ========================================================
+    # SAVE
+    # ========================================================
 
     canvas.save(
-        output_path,
+        OUTPUT_FILE,
         "JPEG",
         quality=95,
-        dpi=(DPI, DPI)
-    )
-
-
-    print(
-        f"Collage saved: {output_path}"
-    )
-
-    print(
-        f"Image size: "
-        f"{CANVAS_WIDTH} x {CANVAS_HEIGHT}"
-    )
-
-    print(
-        "Physical size: "
-        "6 x 4 inches at 300 DPI"
-    )
-
-    return output_path
-
-
-def create_latest_collage():
-
-    photos = get_last_n_photos(4)
-
-    if len(photos) != 4:
-
-        raise ValueError(
-            f"Need 4 photos, found {len(photos)}."
+        dpi=(
+            design_config.PRINT_DPI,
+            design_config.PRINT_DPI
         )
+    )
 
-    return make_collage(photos)
+
+    print(
+        f"3-photo collage created: "
+        f"{OUTPUT_FILE}"
+    )
 
 
-if __name__ == "__main__":
-
-    create_latest_collage()
+    return OUTPUT_FILE

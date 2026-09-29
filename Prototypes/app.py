@@ -25,6 +25,9 @@ import design_config
 
 app = Flask(__name__)
 
+# Allow large full-canvas background/design uploads (50 MB).
+app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
+
 
 # ============================================================
 # CAMERA / SESSION STATE
@@ -48,11 +51,10 @@ DESIGN_FOLDER.mkdir(
     exist_ok=True
 )
 
-ALLOWED_DESIGN_EXTENSIONS = {
-    ".jpg",
-    ".jpeg",
-    ".png"
-}
+ALLOWED_DESIGN_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+BACKGROUND_IMAGE_PATH = DESIGN_FOLDER / "collage_background.png"
+DESIGN_SETTINGS_FILE = DESIGN_FOLDER / "design_settings.json"
+design_config.BACKGROUND_IMAGE = BACKGROUND_IMAGE_PATH
 
 
 def load_design_layout():
@@ -91,7 +93,40 @@ def save_design_layout():
         )
 
 
-load_design_layout()
+def load_saved_settings():
+    if not DESIGN_SETTINGS_FILE.exists():
+        return
+    try:
+        data = json.loads(DESIGN_SETTINGS_FILE.read_text(encoding="utf-8"))
+        if "event_name" in data: design_config.EVENT_NAME = str(data["event_name"])
+        if "event_subtitle" in data: design_config.EVENT_SUBTITLE = str(data["event_subtitle"])
+        if "bottom_text" in data: design_config.BOTTOM_TEXT = str(data["bottom_text"])
+        if "background_color" in data: design_config.GRAPHIC_BACKGROUND = hex_to_rgb(data["background_color"])
+        if "event_text_color" in data: design_config.EVENT_TEXT_COLOR = hex_to_rgb(data["event_text_color"])
+        if "subtitle_text_color" in data: design_config.SUBTITLE_TEXT_COLOR = hex_to_rgb(data["subtitle_text_color"])
+        if "bottom_text_color" in data: design_config.BOTTOM_TEXT_COLOR = hex_to_rgb(data["bottom_text_color"])
+        if "event_font_size" in data: design_config.EVENT_FONT_SIZE_PERCENT = float(data["event_font_size"])
+        if "subtitle_font_size" in data: design_config.SUBTITLE_FONT_SIZE_PERCENT = float(data["subtitle_font_size"])
+        if "bottom_font_size" in data: design_config.BOTTOM_FONT_SIZE_PERCENT = float(data["bottom_font_size"])
+        if "collage_background_style" in data: design_config.COLLAGE_BACKGROUND_STYLE = str(data["collage_background_style"])
+        if "collage_background_color" in data: design_config.COLLAGE_BACKGROUND_COLOR = hex_to_rgb(data["collage_background_color"])
+        if "collage_gradient_start" in data: design_config.COLLAGE_GRADIENT_START = hex_to_rgb(data["collage_gradient_start"])
+        if "collage_gradient_end" in data: design_config.COLLAGE_GRADIENT_END = hex_to_rgb(data["collage_gradient_end"])
+        if "collage_gradient_direction" in data: design_config.COLLAGE_GRADIENT_DIRECTION = str(data["collage_gradient_direction"])
+    except Exception as error:
+        print(f"Could not load saved design settings: {error}")
+
+
+# ============================================================
+# JSON ERROR FOR OVERSIZED UPLOADS
+# ============================================================
+
+@app.errorhandler(413)
+def upload_too_large(error):
+    return jsonify({
+        "success": False,
+        "message": "The image is too large. Please use an image smaller than 50 MB."
+    }), 413
 
 
 # ============================================================
@@ -131,6 +166,10 @@ def hex_to_rgb(hex_color):
         int(hex_color[2:4], 16),
         int(hex_color[4:6], 16)
     )
+
+
+load_design_layout()
+load_saved_settings()
 
 
 # ============================================================
@@ -199,6 +238,12 @@ def get_design_config():
         "collage_gradient_direction":
             design_config.COLLAGE_GRADIENT_DIRECTION,
 
+        "background_image_exists":
+            BACKGROUND_IMAGE_PATH.exists(),
+
+        "background_image_url":
+            "/background-image" if BACKGROUND_IMAGE_PATH.exists() else None,
+
         "design_elements":
             design_config.DESIGN_ELEMENTS,
 
@@ -214,6 +259,59 @@ def get_design_config():
         "gap":
             design_config.GAP
     })
+
+
+# ============================================================
+# FULL-CANVAS BACKGROUND IMAGE
+# ============================================================
+
+@app.route("/upload-background", methods=["POST"])
+@app.route("/upload-background-image", methods=["POST"])
+def upload_background():
+    try:
+        image_file = request.files.get("background")
+        if image_file is None or image_file.filename == "":
+            return jsonify({"success": False, "message": "Choose a background image first."}), 400
+
+        extension = Path(image_file.filename).suffix.lower()
+        if extension not in ALLOWED_DESIGN_EXTENSIONS:
+            return jsonify({"success": False, "message": "Only PNG, JPG and JPEG images are allowed."}), 400
+
+        # Normalize every upload to PNG so the path never changes.
+        from PIL import Image
+        image_file.stream.seek(0)
+        with Image.open(image_file.stream) as image:
+            image.convert("RGB").save(BACKGROUND_IMAGE_PATH, "PNG")
+
+        design_config.BACKGROUND_IMAGE = BACKGROUND_IMAGE_PATH
+        design_config.COLLAGE_BACKGROUND_STYLE = "image"
+        return jsonify({
+            "success": True,
+            "message": "Full-canvas background uploaded.",
+            "url": "/background-image"
+        })
+    except Exception as error:
+        print(f"Background upload error: {error}")
+        return jsonify({"success": False, "message": str(error)}), 500
+
+
+@app.route("/background-image")
+def background_image():
+    if not BACKGROUND_IMAGE_PATH.exists():
+        return "", 404
+    return send_file(BACKGROUND_IMAGE_PATH, mimetype="image/png")
+
+
+@app.route("/delete-background", methods=["POST"])
+def delete_background():
+    try:
+        if BACKGROUND_IMAGE_PATH.exists():
+            BACKGROUND_IMAGE_PATH.unlink()
+        if design_config.COLLAGE_BACKGROUND_STYLE == "image":
+            design_config.COLLAGE_BACKGROUND_STYLE = "solid"
+        return jsonify({"success": True, "message": "Background image removed."})
+    except Exception as error:
+        return jsonify({"success": False, "message": str(error)}), 500
 
 
 # ============================================================
@@ -621,7 +719,8 @@ def save_design():
 
             if style not in (
                 "solid",
-                "gradient"
+                "gradient",
+                "image"
             ):
                 raise ValueError(
                     "Invalid collage background style."
@@ -665,6 +764,11 @@ def save_design():
                 )
 
             design_config.COLLAGE_GRADIENT_DIRECTION = direction
+
+        DESIGN_SETTINGS_FILE.write_text(
+            json.dumps(data, indent=4),
+            encoding="utf-8"
+        )
 
         return jsonify({
             "success": True,

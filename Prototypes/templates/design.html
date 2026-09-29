@@ -544,6 +544,9 @@
                     <option value="gradient">
                         Gradient
                     </option>
+                    <option value="image">
+                        Full Background Image
+                    </option>
                 </select>
             </div>
 
@@ -586,7 +589,17 @@
                         Diagonal
                     </option>
                 </select>
+                <div class="field">
+                <label>Full Canvas Background Image</label>
+                <input id="backgroundFile" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg">
             </div>
+
+            <div class="button-row">
+                <button type="button" onclick="uploadBackground()">Upload Background</button>
+                <button class="danger" type="button" onclick="removeBackground()">Remove Background</button>
+            </div>
+            <div class="hint">The image fills the complete 1800 × 1200 canvas. The three photo slots stay locked on top.</div>
+        </div>
         </div>
 
         <div class="section">
@@ -763,13 +776,34 @@
             `${height / canvasHeight * 100}%`;
     }
 
+    async function readJsonResponse(response, actionName) {
+        const contentType = response.headers.get("content-type") || "";
+        const bodyText = await response.text();
+
+        if (!contentType.includes("application/json")) {
+            const cleanText = bodyText.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+            throw new Error(
+                `${actionName} returned HTTP ${response.status} instead of JSON. ` +
+                (response.status === 404
+                    ? "The Flask route is missing. Make sure you replaced app.py and restarted Flask."
+                    : (cleanText ? cleanText.slice(0, 180) : "Check the Flask terminal for the server error."))
+            );
+        }
+
+        try {
+            return JSON.parse(bodyText);
+        } catch (error) {
+            throw new Error(`${actionName} returned invalid JSON. Check the Flask terminal.`);
+        }
+    }
+
     async function loadDesign() {
         try {
             const response = await fetch(
                 "/design-config"
             );
 
-            const data = await response.json();
+            const data = await readJsonResponse(response, "Load design");
 
             document.getElementById(
                 "eventName"
@@ -836,6 +870,8 @@
             ).value =
                 data.collage_gradient_direction;
 
+            window.backgroundImageExists = Boolean(data.background_image_exists);
+
             designElements = (
                 data.design_elements || []
             ).sort(
@@ -864,42 +900,37 @@
     }
 
     function updateBackground() {
-        const style = document.getElementById(
-            "backgroundStyle"
-        ).value;
+        const style = document.getElementById("backgroundStyle").value;
+        const solid = document.getElementById("collageBackgroundColor").value;
+        const start = document.getElementById("gradientStart").value;
+        const end = document.getElementById("gradientEnd").value;
+        const direction = document.getElementById("gradientDirection").value;
+        const panel = document.getElementById("graphicPanel");
 
-        const solid = document.getElementById(
-            "collageBackgroundColor"
-        ).value;
-
-        const start = document.getElementById(
-            "gradientStart"
-        ).value;
-
-        const end = document.getElementById(
-            "gradientEnd"
-        ).value;
-
-        const direction = document.getElementById(
-            "gradientDirection"
-        ).value;
+        if (style === "image") {
+            if (window.backgroundImageExists) {
+                canvas.style.background =
+                    `url('/background-image?t=${Date.now()}') center / cover no-repeat`;
+            } else {
+                canvas.style.background = solid;
+            }
+            panel.style.background = "transparent";
+            return;
+        }
 
         if (style === "solid") {
             canvas.style.background = solid;
+            panel.style.background = document.getElementById("backgroundColor").value;
             return;
         }
 
         let cssDirection = "to right";
-
-        if (direction === "vertical") {
-            cssDirection = "to bottom";
-        }
-        else if (direction === "diagonal") {
-            cssDirection = "to bottom right";
-        }
+        if (direction === "vertical") cssDirection = "to bottom";
+        else if (direction === "diagonal") cssDirection = "to bottom right";
 
         canvas.style.background =
             `linear-gradient(${cssDirection}, ${start}, ${end})`;
+        panel.style.background = "transparent";
     }
 
     function updateTextPreview() {
@@ -907,10 +938,10 @@
             "graphicPanel"
         );
 
-        panel.style.background =
-            document.getElementById(
-                "backgroundColor"
-            ).value;
+        const backgroundStyle = document.getElementById("backgroundStyle").value;
+        panel.style.background = backgroundStyle === "solid"
+            ? document.getElementById("backgroundColor").value
+            : "transparent";
 
         const event = document.getElementById(
             "eventPreview"
@@ -1396,6 +1427,52 @@
         renderElementList();
     }
 
+    async function uploadBackground() {
+        const input = document.getElementById("backgroundFile");
+        if (!input.files.length) {
+            showMessage("Choose a PNG, JPG or JPEG background first.", "error");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("background", input.files[0]);
+
+        try {
+            const response = await fetch("/upload-background", {
+                method: "POST",
+                body: formData
+            });
+            const data = await readJsonResponse(response, "Background upload");
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Background upload failed.");
+            }
+
+            window.backgroundImageExists = true;
+            document.getElementById("backgroundStyle").value = "image";
+            input.value = "";
+            updateBackground();
+            showMessage("Full-canvas background uploaded. Click Save Design to keep Image mode.");
+        } catch (error) {
+            showMessage(error.message, "error");
+        }
+    }
+
+    async function removeBackground() {
+        try {
+            const response = await fetch("/delete-background", {method: "POST"});
+            const data = await readJsonResponse(response, "Remove background");
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || "Could not remove background.");
+            }
+            window.backgroundImageExists = false;
+            document.getElementById("backgroundStyle").value = "solid";
+            updateBackground();
+            showMessage("Background image removed.");
+        } catch (error) {
+            showMessage(error.message, "error");
+        }
+    }
+
     async function uploadDesign() {
         const input = document.getElementById(
             "designFile"
@@ -1425,7 +1502,7 @@
                 }
             );
 
-            const data = await response.json();
+            const data = await readJsonResponse(response, "Design upload");
 
             if (!response.ok || !data.success) {
                 throw new Error(
@@ -1489,7 +1566,7 @@
                 }
             );
 
-            const data = await response.json();
+            const data = await readJsonResponse(response, "Delete design");
 
             if (!response.ok || !data.success) {
                 throw new Error(
@@ -1624,7 +1701,7 @@
                 );
 
             const settingsResult =
-                await settingsResponse.json();
+                await readJsonResponse(settingsResponse, "Save design settings");
 
             if (
                 !settingsResponse.ok
@@ -1654,7 +1731,7 @@
                 );
 
             const elementResult =
-                await elementResponse.json();
+                await readJsonResponse(elementResponse, "Save design elements");
 
             if (
                 !elementResponse.ok

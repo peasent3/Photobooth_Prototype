@@ -31,6 +31,11 @@ COLLAGE_GRADIENT_START = (255, 255, 255)
 COLLAGE_GRADIENT_END = (220, 220, 220)
 COLLAGE_GRADIENT_DIRECTION = "horizontal"
 
+# Optional full-canvas background image.
+# When COLLAGE_BACKGROUND_STYLE == "image", this image is
+# fitted to the entire 1800 x 1200 collage.
+BACKGROUND_IMAGE = Path(r"C:\Photobooth\Photos\Designs\collage_background.png")
+
 
 # ============================================================
 # FONTS

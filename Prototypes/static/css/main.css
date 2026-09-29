@@ -1,0 +1,1695 @@
+/* =========================================================
+   STILL MOTION ARCHIVES PHOTOBOOTH
+   MAIN CSS
+
+   File:
+   static/css/main.css
+========================================================= */
+
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+
+:root {
+
+    --phase-blue: #2679bd;
+    --phase-blue-light: #3188cb;
+    --phase-blue-dark: #185b91;
+
+    --phase-yellow: #ffc44f;
+    --phase-yellow-light: #ffd46f;
+    --phase-yellow-dark: #d99b28;
+
+    --phase-red: #df6455;
+    --phase-red-light: #ed7b6b;
+    --phase-red-dark: #ad433b;
+}
+
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    font-family:
+        Inter,
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    color: white;
+}
+
+
+body {
+    min-height: 100vh;
+    background: var(--phase-blue);
+}
+
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+button {
+    font-family: inherit;
+}
+
+
+/* =========================================================
+   PHASE BACKGROUND
+========================================================= */
+
+.phase-background {
+    position: fixed;
+    inset: 0;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            circle at center,
+            var(--phase-blue-light) 0%,
+            var(--phase-blue) 55%,
+            var(--phase-blue-dark) 100%
+        );
+
+    transition: background 0.8s ease;
+}
+
+
+.phase-background::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background:
+        radial-gradient(
+            circle at 50% 45%,
+            rgba(255, 255, 255, 0.16),
+            transparent 55%
+        );
+
+    pointer-events: none;
+}
+
+
+/* BLUE */
+
+body.phase-idle .phase-background {
+    background:
+        radial-gradient(
+            circle at center,
+            var(--phase-blue-light) 0%,
+            var(--phase-blue) 55%,
+            var(--phase-blue-dark) 100%
+        );
+}
+
+
+/* YELLOW */
+
+body.phase-session .phase-background {
+    background:
+        radial-gradient(
+            circle at center,
+            var(--phase-yellow-light) 0%,
+            var(--phase-yellow) 55%,
+            var(--phase-yellow-dark) 100%
+        );
+}
+
+
+/* CORAL */
+
+body.phase-complete .phase-background {
+    background:
+        radial-gradient(
+            circle at center,
+            var(--phase-red-light) 0%,
+            var(--phase-red) 55%,
+            var(--phase-red-dark) 100%
+        );
+}
+
+
+/* =========================================================
+   PHASE TRANSITION
+========================================================= */
+
+.phase-transition {
+    position: fixed;
+
+    top: 0;
+    left: -140%;
+
+    width: 130%;
+    height: 100%;
+
+    z-index: 9000;
+
+    pointer-events: none;
+
+    opacity: 0;
+}
+
+
+.phase-transition.to-idle {
+    background: var(--phase-blue);
+
+    opacity: 1;
+
+    animation:
+        phaseSweep
+        0.85s
+        cubic-bezier(0.65, 0, 0.35, 1)
+        forwards;
+}
+
+
+.phase-transition.to-session {
+    background: var(--phase-yellow);
+
+    opacity: 1;
+
+    animation:
+        phaseSweep
+        0.85s
+        cubic-bezier(0.65, 0, 0.35, 1)
+        forwards;
+}
+
+
+.phase-transition.to-complete {
+    background: var(--phase-red);
+
+    opacity: 1;
+
+    animation:
+        phaseSweep
+        0.85s
+        cubic-bezier(0.65, 0, 0.35, 1)
+        forwards;
+}
+
+
+/* Zig-zag transition edge */
+
+.phase-transition::after {
+    content: "";
+
+    position: absolute;
+
+    right: -110px;
+    top: 0;
+
+    width: 120px;
+    height: 100%;
+
+    background: inherit;
+
+    clip-path:
+        polygon(
+            0 0,
+            100% 12%,
+            20% 25%,
+            100% 38%,
+            20% 52%,
+            100% 66%,
+            20% 80%,
+            100% 92%,
+            0 100%
+        );
+}
+
+
+@keyframes phaseSweep {
+
+    0% {
+        left: -140%;
+    }
+
+    48%,
+    52% {
+        left: 0;
+    }
+
+    100% {
+        left: 140%;
+    }
+}
+
+
+/* =========================================================
+   PHASE LABEL
+========================================================= */
+
+.phase-label {
+    position: fixed;
+
+    top: 92px;
+    left: 30px;
+
+    z-index: 21;
+
+    padding: 9px 14px;
+
+    border-radius: 30px;
+
+    background:
+        rgba(0, 0, 0, 0.20);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.18);
+
+    backdrop-filter: blur(10px);
+
+    color: white;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 1.5px;
+
+    text-transform: uppercase;
+
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+header {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    right: 0;
+
+    height: 72px;
+
+    padding: 0 28px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    z-index: 20;
+
+    transition:
+        opacity 0.4s ease,
+        transform 0.4s ease;
+}
+
+
+.brand {
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+}
+
+
+.brand-icon {
+    width: 40px;
+    height: 40px;
+
+    border-radius: 11px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        rgba(255, 255, 255, 0.92);
+
+    color: #111;
+
+    font-size: 20px;
+
+    box-shadow:
+        0 4px 20px
+        rgba(0, 0, 0, 0.25);
+}
+
+
+.brand-text h1 {
+    margin: 0;
+
+    font-size: 19px;
+    font-weight: 700;
+}
+
+
+.brand-text p {
+    margin: 2px 0 0;
+
+    color:
+        rgba(255, 255, 255, 0.72);
+
+    font-size: 11px;
+}
+
+
+.design-link {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    text-decoration: none;
+
+    color: white;
+
+    background:
+        rgba(15, 17, 20, 0.65);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.15);
+
+    backdrop-filter: blur(10px);
+
+    padding: 10px 15px;
+
+    border-radius: 10px;
+
+    font-size: 12px;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.design-link:hover {
+    background:
+        rgba(255, 255, 255, 0.14);
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   BOOTH AREA
+========================================================= */
+
+.booth-area {
+    position: fixed;
+
+    top: 72px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 5;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 25px;
+}
+
+
+/* =========================================================
+   CAMERA FRAME
+========================================================= */
+
+.camera-frame {
+    position: relative;
+
+    width:
+        min(
+            75vw,
+            calc(75vh * 1.55)
+        );
+
+    height:
+        min(
+            75vh,
+            calc(75vw / 1.55)
+        );
+
+    max-width: 75vw;
+    max-height: 75vh;
+
+    min-width: 500px;
+    min-height: 320px;
+
+    background: #050608;
+
+    border-radius: 26px;
+
+    overflow: hidden;
+
+    border:
+        2px solid
+        rgba(255, 255, 255, 0.18);
+
+    box-shadow:
+        0 30px 80px
+        rgba(0, 0, 0, 0.35);
+
+    transition:
+        width 0.5s ease,
+        height 0.5s ease;
+}
+
+
+/* =========================================================
+   LIVE VIEW
+========================================================= */
+
+#liveview {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+
+    background: #050608;
+}
+
+
+/* =========================================================
+   CAMERA OVERLAY
+========================================================= */
+
+.camera-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.20),
+            transparent 20%,
+            transparent 75%,
+            rgba(0, 0, 0, 0.35)
+        );
+}
+
+
+/* =========================================================
+   CAMERA LABEL
+========================================================= */
+
+.camera-label {
+    position: absolute;
+
+    top: 16px;
+    left: 16px;
+
+    padding: 7px 10px;
+
+    border-radius: 8px;
+
+    background:
+        rgba(0, 0, 0, 0.45);
+
+    backdrop-filter: blur(8px);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.10);
+
+    color:
+        rgba(255, 255, 255, 0.85);
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   CAMERA DISCONNECTED
+========================================================= */
+
+.no-camera {
+    position: absolute;
+
+    inset: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 12px;
+
+    color: #777;
+
+    background: #08090b;
+
+    z-index: 2;
+}
+
+
+.no-camera-icon {
+    font-size: 48px;
+
+    opacity: 0.45;
+}
+
+
+.no-camera-text {
+    font-size: 15px;
+
+    color: #777;
+}
+
+
+/* =========================================================
+   CAMERA STATUS
+========================================================= */
+
+.camera-status {
+    position: fixed;
+
+    left: 28px;
+    bottom: 25px;
+
+    z-index: 10;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    padding: 8px 12px;
+
+    border-radius: 9px;
+
+    background:
+        rgba(10, 12, 15, 0.65);
+
+    backdrop-filter: blur(10px);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.10);
+
+    color:
+        rgba(255, 255, 255, 0.82);
+
+    font-size: 12px;
+
+    transition:
+        opacity 0.4s ease,
+        transform 0.4s ease;
+}
+
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #777;
+}
+
+
+.status-dot.connected {
+    background: #55d879;
+
+    box-shadow:
+        0 0 12px
+        rgba(85, 216, 121, 0.8);
+}
+
+
+/* =========================================================
+   CONTROL PANEL
+========================================================= */
+
+.control-panel {
+    position: fixed;
+
+    right: 28px;
+    bottom: 25px;
+
+    width: 270px;
+
+    padding: 18px;
+
+    border-radius: 17px;
+
+    background:
+        rgba(10, 12, 15, 0.78);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+
+    backdrop-filter: blur(18px);
+
+    box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.40);
+
+    z-index: 15;
+
+    transition:
+        opacity 0.4s ease,
+        transform 0.4s ease;
+}
+
+
+.control-title {
+    margin: 0 0 4px;
+
+    font-size: 17px;
+}
+
+
+.control-description {
+    margin: 0 0 14px;
+
+    color: #b5bac1;
+
+    font-size: 10px;
+
+    line-height: 1.45;
+}
+
+
+/* =========================================================
+   PHOTO PROGRESS
+========================================================= */
+
+.photo-progress {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 6px;
+
+    margin-bottom: 14px;
+}
+
+
+.photo-step {
+    height: 48px;
+
+    border-radius: 8px;
+
+    background:
+        rgba(255, 255, 255, 0.045);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-direction: column;
+
+    gap: 2px;
+
+    color: #9aa0a8;
+
+    font-size: 9px;
+
+    transition: 0.25s;
+}
+
+
+.photo-step-number {
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+
+.photo-step.active {
+    border-color:
+        rgba(66, 133, 244, 0.8);
+
+    background:
+        rgba(66, 133, 244, 0.12);
+
+    color: #7daaff;
+}
+
+
+.photo-step.completed {
+    border-color:
+        rgba(85, 216, 121, 0.55);
+
+    background:
+        rgba(85, 216, 121, 0.10);
+
+    color: #72dc8e;
+}
+
+
+/* =========================================================
+   PHOTO COUNT
+========================================================= */
+
+.photo-count {
+    text-align: center;
+
+    margin-bottom: 13px;
+}
+
+
+.photo-count-number {
+    font-size: 24px;
+
+    font-weight: 700;
+}
+
+
+.photo-count-label {
+    margin-top: 2px;
+
+    color: #9aa0a8;
+
+    font-size: 9px;
+}
+
+
+/* =========================================================
+   START BUTTON
+========================================================= */
+
+.start-button {
+    width: 100%;
+
+    padding: 14px 18px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #3678e5,
+            #285cc0
+        );
+
+    color: white;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 8px 25px
+        rgba(45, 102, 205, 0.25);
+
+    transition: 0.2s;
+}
+
+
+.start-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+
+.start-button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.45;
+}
+
+
+/* =========================================================
+   CONNECTION BUTTONS
+========================================================= */
+
+.connection-buttons {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 6px;
+
+    margin-top: 7px;
+}
+
+
+.small-button {
+    padding: 8px;
+
+    border-radius: 8px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    background:
+        rgba(255, 255, 255, 0.055);
+
+    color: #ddd;
+
+    font-size: 10px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.small-button:hover {
+    background:
+        rgba(255, 255, 255, 0.10);
+}
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+.message {
+    min-height: 14px;
+
+    margin-top: 9px;
+
+    text-align: center;
+
+    color: #b5bac1;
+
+    font-size: 10px;
+
+    line-height: 1.4;
+}
+
+
+.message.error {
+    color: #ff9292;
+}
+
+
+.message.success {
+    color: #8ce5a2;
+}
+
+
+/* =========================================================
+   PHOTO BEAN
+
+   Bean is 120px wide.
+
+   JavaScript measures the live-view frame and only places
+   Bean in locations that do not overlap the camera.
+========================================================= */
+
+.photo-bean-host {
+    --bean-x: 25px;
+    --bean-y: 120px;
+
+    position: fixed;
+
+    left: 0;
+    top: 0;
+
+    z-index: 100;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    pointer-events: none;
+
+    transform:
+        translate(
+            var(--bean-x),
+            var(--bean-y)
+        );
+
+    opacity: 1;
+
+    transition:
+        transform 0.7s
+        cubic-bezier(
+            0.34,
+            1.56,
+            0.64,
+            1
+        ),
+        opacity 0.3s ease;
+}
+
+
+/* =========================================================
+   PHOTO BEAN IMAGE
+========================================================= */
+
+.photo-bean-image {
+    width: 120px;
+    height: auto;
+
+    display: block;
+
+    object-fit: contain;
+
+    transform-origin:
+        center bottom;
+
+    filter:
+        drop-shadow(
+            0 10px 15px
+            rgba(0, 0, 0, 0.30)
+        );
+
+    animation:
+        beanIdle
+        2.8s
+        ease-in-out
+        infinite;
+}
+
+
+/* =========================================================
+   PHOTO BEAN SPEECH
+========================================================= */
+
+.bean-speech {
+    width: 165px;
+
+    padding: 10px 13px;
+
+    border-radius:
+        14px
+        14px
+        14px
+        5px;
+
+    background:
+        rgba(255, 255, 255, 0.96);
+
+    color: #17191d;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    line-height: 1.35;
+
+    box-shadow:
+        0 10px 25px
+        rgba(0, 0, 0, 0.22);
+
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+}
+
+
+/* =========================================================
+   DURING SESSION
+
+   Speech bubble is completely removed from layout so the
+   mascot positioning only has to account for Bean himself.
+========================================================= */
+
+body.phase-session .bean-speech {
+    display: none;
+}
+
+
+/* =========================================================
+   PHOTO BEAN ENTER / EXIT
+========================================================= */
+
+.photo-bean-host.bean-hidden {
+    opacity: 0;
+
+    transform:
+        translate(
+            var(--bean-x),
+            calc(var(--bean-y) + 30px)
+        )
+        scale(0.78);
+}
+
+
+.photo-bean-host.bean-visible {
+    opacity: 1;
+}
+
+
+/* =========================================================
+   PHOTO BEAN STATES
+========================================================= */
+
+.photo-bean-host.ready .photo-bean-image {
+    animation:
+        beanHappy
+        1.4s
+        ease-in-out
+        infinite;
+}
+
+
+.photo-bean-host.countdown .photo-bean-image {
+    animation:
+        beanReady
+        0.5s
+        ease-in-out
+        infinite
+        alternate;
+}
+
+
+.photo-bean-host.capture .photo-bean-image {
+    animation:
+        beanCapture
+        0.45s
+        ease-out;
+}
+
+
+.photo-bean-host.celebrate .photo-bean-image {
+    animation:
+        beanCelebrate
+        0.7s
+        ease-in-out
+        2;
+}
+
+
+.photo-bean-host.processing .photo-bean-image {
+    animation:
+        beanProcessing
+        1s
+        ease-in-out
+        infinite;
+}
+
+
+.photo-bean-host.error .photo-bean-image {
+    animation:
+        beanError
+        0.35s
+        ease-in-out
+        3;
+}
+
+
+/* =========================================================
+   PHOTO BEAN ANIMATIONS
+========================================================= */
+
+@keyframes beanIdle {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+
+@keyframes beanHappy {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-9px);
+    }
+}
+
+
+@keyframes beanReady {
+
+    from {
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+    to {
+        transform:
+            translateY(-7px)
+            scale(1.04);
+    }
+}
+
+
+@keyframes beanCapture {
+
+    0% {
+        transform: scale(1);
+    }
+
+    35% {
+        transform: scale(0.90);
+    }
+
+    65% {
+        transform: scale(1.10);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+@keyframes beanCelebrate {
+
+    0%,
+    100% {
+        transform:
+            translateY(0)
+            rotate(0deg);
+    }
+
+    25% {
+        transform:
+            translateY(-12px)
+            rotate(-5deg);
+    }
+
+    50% {
+        transform:
+            translateY(-5px)
+            rotate(5deg);
+    }
+
+    75% {
+        transform:
+            translateY(-10px)
+            rotate(-4deg);
+    }
+}
+
+
+@keyframes beanProcessing {
+
+    0%,
+    100% {
+        transform:
+            rotate(-2deg);
+    }
+
+    50% {
+        transform:
+            translateY(-4px)
+            rotate(2deg);
+    }
+}
+
+
+@keyframes beanError {
+
+    0%,
+    100% {
+        transform:
+            translateX(0);
+    }
+
+    50% {
+        transform:
+            translateX(6px);
+    }
+}
+
+
+/* =========================================================
+   SESSION UI
+========================================================= */
+
+.booth-session-active header {
+    opacity: 0;
+
+    transform:
+        translateY(-20px);
+
+    pointer-events: none;
+}
+
+
+.booth-session-active .control-panel {
+    opacity: 0;
+
+    transform:
+        translateY(25px);
+
+    pointer-events: none;
+}
+
+
+.booth-session-active .camera-status {
+    opacity: 0;
+
+    transform:
+        translateY(20px);
+
+    pointer-events: none;
+}
+
+
+.booth-session-active .phase-label {
+    opacity: 0;
+}
+
+
+/*
+    Camera expands slightly during the session.
+*/
+
+.booth-session-active .camera-frame {
+    width:
+        min(
+            82vw,
+            calc(82vh * 1.55)
+        );
+
+    height:
+        min(
+            82vh,
+            calc(82vw / 1.55)
+        );
+}
+
+
+/* =========================================================
+   COUNTDOWN
+========================================================= */
+
+.countdown-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    z-index: 10000;
+
+    pointer-events: none;
+}
+
+
+.countdown-overlay.visible {
+    display: flex;
+}
+
+
+.countdown-number {
+    width: 170px;
+    height: 170px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        rgba(0, 0, 0, 0.50);
+
+    border:
+        2px solid
+        rgba(255, 255, 255, 0.70);
+
+    backdrop-filter: blur(7px);
+
+    box-shadow:
+        0 0 60px
+        rgba(0, 0, 0, 0.35);
+
+    font-size: 82px;
+    font-weight: 800;
+
+    color: white;
+
+    text-shadow:
+        0 5px 25px
+        rgba(0, 0, 0, 0.7);
+}
+
+
+@keyframes countdownPulse {
+
+    0% {
+        transform: scale(1.25);
+
+        opacity: 0;
+    }
+
+    25% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+
+        opacity: 1;
+    }
+}
+
+
+/* =========================================================
+   FLASH
+========================================================= */
+
+.flash {
+    position: fixed;
+
+    inset: 0;
+
+    background: white;
+
+    opacity: 0;
+
+    z-index: 11000;
+
+    pointer-events: none;
+}
+
+
+.flash.active {
+    animation:
+        cameraFlash
+        0.35s
+        ease-out;
+}
+
+
+@keyframes cameraFlash {
+
+    0% {
+        opacity: 0;
+    }
+
+    25% {
+        opacity: 0.9;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+
+/* =========================================================
+   COLLAGE PREVIEW
+========================================================= */
+
+.collage-preview-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        rgba(0, 0, 0, 0.82);
+
+    backdrop-filter: blur(15px);
+
+    z-index: 12000;
+
+    padding: 30px;
+}
+
+
+.collage-preview-overlay.visible {
+    display: flex;
+}
+
+
+.collage-preview-container {
+    max-width:
+        min(
+            90vw,
+            1000px
+        );
+
+    max-height: 90vh;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 14px;
+}
+
+
+.collage-title {
+    margin: 0;
+
+    font-size: 20px;
+    font-weight: 700;
+}
+
+
+#collageImage {
+    display: none;
+
+    max-width: 100%;
+    max-height: 72vh;
+
+    width: auto;
+    height: auto;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 25px 80px
+        rgba(0, 0, 0, 0.55);
+}
+
+
+.collage-ready {
+    color: #8ce5a2;
+
+    font-size: 11px;
+}
+
+
+.preview-buttons {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+
+    flex-wrap: wrap;
+}
+
+
+.preview-button {
+    padding: 11px 18px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    color: white;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.preview-button:hover {
+    transform: translateY(-1px);
+}
+
+
+.preview-button:disabled {
+    opacity: 0.45;
+
+    cursor: not-allowed;
+}
+
+
+.retake-button {
+    background:
+        linear-gradient(
+            135deg,
+            #3678e5,
+            #285cc0
+        );
+}
+
+
+.print-button {
+    background:
+        linear-gradient(
+            135deg,
+            #c36b25,
+            #9d4e18
+        );
+}
+
+
+.menu-button {
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 800px) {
+
+    html,
+    body {
+        overflow: auto;
+    }
+
+
+    .booth-area {
+        position: relative;
+
+        top: 72px;
+
+        min-height:
+            calc(100vh - 72px);
+
+        padding: 20px;
+
+        flex-direction: column;
+
+        justify-content: flex-start;
+    }
+
+
+    .camera-frame {
+        width: 100%;
+
+        height: auto;
+
+        aspect-ratio: 16 / 10;
+
+        max-width: none;
+        max-height: none;
+
+        min-width: 0;
+        min-height: 0;
+    }
+
+
+    .control-panel {
+        position: relative;
+
+        right: auto;
+        bottom: auto;
+
+        width: 100%;
+
+        max-width: 600px;
+    }
+
+
+    .camera-status {
+        position: relative;
+
+        left: auto;
+        bottom: auto;
+
+        margin: 10px 20px;
+    }
+
+
+    .photo-bean-image {
+        width: 90px;
+    }
+
+
+    .bean-speech {
+        width: 130px;
+
+        font-size: 9px;
+    }
+
+
+    .phase-label {
+        top: 80px;
+        left: 15px;
+
+        font-size: 9px;
+    }
+
+
+    .preview-buttons {
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+
+    .preview-button {
+        width: 100%;
+
+        max-width: 300px;
+    }
+}

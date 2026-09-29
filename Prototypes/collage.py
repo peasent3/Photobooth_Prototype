@@ -44,6 +44,23 @@ def create_collage_background(width, height):
             design_config.COLLAGE_BACKGROUND_COLOR
         )
 
+    if style == "image":
+        image_path = Path(design_config.BACKGROUND_IMAGE)
+        if image_path.exists():
+            with Image.open(image_path) as source:
+                image = source.convert("RGB")
+            return ImageOps.fit(
+                image,
+                (width, height),
+                method=Image.Resampling.LANCZOS,
+                centering=(0.5, 0.5)
+            )
+        return Image.new(
+            "RGB",
+            (width, height),
+            design_config.COLLAGE_BACKGROUND_COLOR
+        )
+
     if style != "gradient":
         return Image.new(
             "RGB",
@@ -111,11 +128,16 @@ def create_collage_background(width, height):
 
 
 def create_graphic_panel(width, height):
-    panel = Image.new(
-        "RGB",
-        (width, height),
-        design_config.GRAPHIC_BACKGROUND
-    )
+    # The top-left area is part of the same full collage canvas.
+    # Gradient and image backgrounds therefore show through it.
+    if design_config.COLLAGE_BACKGROUND_STYLE.lower() in ("gradient", "image"):
+        panel = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    else:
+        panel = Image.new(
+            "RGBA",
+            (width, height),
+            (*design_config.GRAPHIC_BACKGROUND, 255)
+        )
     draw = ImageDraw.Draw(panel)
 
     event_name = design_config.EVENT_NAME
@@ -278,7 +300,8 @@ def make_collage(photo_paths):
     # Top-left design/text panel.
     canvas.paste(
         graphic_panel,
-        (x_left, y_top)
+        (x_left, y_top),
+        graphic_panel
     )
 
     # Photo 1: fixed top-right.

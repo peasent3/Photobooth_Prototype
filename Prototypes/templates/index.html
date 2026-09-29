@@ -10,3303 +10,601 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Photobooth</title>
-
-    <style>
-
-        /* =====================================================
-           GLOBAL
-        ===================================================== */
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-
-            font-family:
-                Inter,
-                Arial,
-                Helvetica,
-                sans-serif;
-
-            background:
-                radial-gradient(
-                    circle at center,
-                    #20242a 0%,
-                    #111317 45%,
-                    #08090b 100%
-                );
-
-            color: white;
-        }
-
-        body {
-            min-height: 100vh;
-        }
-
-        button,
-        a {
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        button {
-            font-family: inherit;
-        }
-
-
-        /* =====================================================
-           HEADER
-        ===================================================== */
-
-        header {
-            position: fixed;
-
-            top: 0;
-            left: 0;
-            right: 0;
-
-            height: 72px;
-
-            padding: 0 28px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            z-index: 20;
-
-            transition:
-                opacity 0.4s ease,
-                transform 0.4s ease;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-        }
-
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-
-            border-radius: 11px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            background: rgba(255,255,255,0.92);
-
-            color: #111;
-
-            font-size: 20px;
-
-            box-shadow:
-                0 4px 20px
-                rgba(0,0,0,0.25);
-        }
-
-        .brand-text h1 {
-            margin: 0;
-
-            font-size: 19px;
-            font-weight: 700;
-
-            letter-spacing: -0.3px;
-        }
-
-        .brand-text p {
-            margin: 2px 0 0;
-
-            color: rgba(255,255,255,0.55);
-
-            font-size: 11px;
-        }
-
-        .design-link {
-            display: flex;
-
-            align-items: center;
-
-            gap: 7px;
-
-            text-decoration: none;
-
-            color: white;
-
-            background:
-                rgba(15,17,20,0.65);
-
-            border:
-                1px solid
-                rgba(255,255,255,0.15);
-
-            backdrop-filter:
-                blur(10px);
-
-            padding: 10px 15px;
-
-            border-radius: 10px;
-
-            font-size: 12px;
-
-            transition:
-                background 0.2s,
-                transform 0.2s;
-        }
-
-        .design-link:hover {
-            background:
-                rgba(255,255,255,0.14);
-
-            transform:
-                translateY(-1px);
-        }
-
-
-        /* =====================================================
-           MAIN BOOTH AREA
-        ===================================================== */
-
-        .booth-area {
-            position: fixed;
-
-            top: 72px;
-
-            left: 0;
-            right: 0;
-            bottom: 0;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            padding: 25px;
-        }
-
-
-        /* =====================================================
-           CAMERA FRAME
-        ===================================================== */
-
-        .camera-frame {
-            position: relative;
-
-            width:
-                min(
-                    75vw,
-                    75vh * 1.55
-                );
-
-            height:
-                min(
-                    75vh,
-                    75vw / 1.55
-                );
-
-            max-width: 75vw;
-            max-height: 75vh;
-
-            min-width: 500px;
-            min-height: 320px;
-
-            background: #050608;
-
-            border-radius: 26px;
-
-            overflow: hidden;
-
-            border:
-                2px solid
-                rgba(255,255,255,0.12);
-
-            box-shadow:
-                0 30px 80px
-                rgba(0,0,0,0.45),
-
-                0 0 0 1px
-                rgba(0,0,0,0.5);
-
-            transition:
-                width 0.5s ease,
-                height 0.5s ease;
-        }
-
-        #liveview {
-            position: absolute;
-
-            inset: 0;
-
-            width: 100%;
-            height: 100%;
-
-            display: block;
-
-            object-fit: cover;
-
-            background: #050608;
-        }
-
-        .camera-overlay {
-            position: absolute;
-
-            inset: 0;
-
-            pointer-events: none;
-
-            background:
-                linear-gradient(
-                    to bottom,
-                    rgba(0,0,0,0.20),
-                    transparent 20%,
-                    transparent 75%,
-                    rgba(0,0,0,0.35)
-                );
-        }
-
-
-        /* =====================================================
-           CAMERA LABEL
-        ===================================================== */
-
-        .camera-label {
-            position: absolute;
-
-            top: 16px;
-            left: 16px;
-
-            padding: 7px 10px;
-
-            border-radius: 8px;
-
-            background:
-                rgba(0,0,0,0.45);
-
-            backdrop-filter:
-                blur(8px);
-
-            border:
-                1px solid
-                rgba(255,255,255,0.10);
-
-            color:
-                rgba(255,255,255,0.85);
-
-            font-size: 10px;
-
-            letter-spacing: 0.3px;
-        }
-
-
-        /* =====================================================
-           NO CAMERA
-        ===================================================== */
-
-        .no-camera {
-            position: absolute;
-
-            inset: 0;
-
-            display: flex;
-
-            flex-direction: column;
-
-            align-items: center;
-            justify-content: center;
-
-            gap: 12px;
-
-            color: #777;
-
-            background: #08090b;
-
-            z-index: 2;
-        }
-
-        .no-camera-icon {
-            font-size: 48px;
-            opacity: 0.45;
-        }
-
-        .no-camera-text {
-            font-size: 15px;
-            color: #777;
-        }
-
-
-        /* =====================================================
-           CAMERA STATUS
-        ===================================================== */
-
-        .camera-status {
-            position: fixed;
-
-            left: 28px;
-            bottom: 25px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 9px;
-
-            padding: 8px 12px;
-
-            border-radius: 9px;
-
-            background:
-                rgba(5,6,8,0.65);
-
-            backdrop-filter:
-                blur(10px);
-
-            border:
-                1px solid
-                rgba(255,255,255,0.10);
-
-            color:
-                rgba(255,255,255,0.82);
-
-            font-size: 12px;
-
-            z-index: 10;
-
-            transition:
-                opacity 0.4s ease,
-                transform 0.4s ease;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-
-            border-radius: 50%;
-
-            background: #777;
-        }
-
-        .status-dot.connected {
-            background: #55d879;
-
-            box-shadow:
-                0 0 12px
-                rgba(85,216,121,0.8);
-        }
-
-
-        /* =====================================================
-           CONTROL PANEL
-        ===================================================== */
-
-        .control-panel {
-            position: fixed;
-
-            right: 28px;
-            bottom: 25px;
-
-            width: 270px;
-
-            padding: 18px;
-
-            border-radius: 17px;
-
-            background:
-                rgba(12,14,17,0.82);
-
-            border:
-                1px solid
-                rgba(255,255,255,0.12);
-
-            backdrop-filter:
-                blur(18px);
-
-            box-shadow:
-                0 20px 60px
-                rgba(0,0,0,0.40);
-
-            z-index: 15;
-
-            transition:
-                opacity 0.4s ease,
-                transform 0.4s ease;
-        }
-
-        .control-title {
-            margin: 0 0 4px;
-
-            font-size: 17px;
-            font-weight: 700;
-        }
-
-        .control-description {
-            margin: 0 0 14px;
-
-            color: #858c95;
-
-            font-size: 10px;
-
-            line-height: 1.45;
-        }
-
-
-        /* =====================================================
-           PHOTO PROGRESS
-        ===================================================== */
-
-        .photo-progress {
-            display: grid;
-
-            grid-template-columns:
-                repeat(3, 1fr);
-
-            gap: 6px;
-
-            margin-bottom: 14px;
-        }
-
-        .photo-step {
-            height: 48px;
-
-            border-radius: 8px;
-
-            background:
-                rgba(255,255,255,0.045);
-
-            border:
-                1px solid
-                rgba(255,255,255,0.08);
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            flex-direction: column;
-
-            gap: 2px;
-
-            color: #666d76;
-
-            font-size: 9px;
-
-            transition: 0.25s;
-        }
-
-        .photo-step-number {
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .photo-step.active {
-            border-color:
-                rgba(66,133,244,0.8);
-
-            background:
-                rgba(66,133,244,0.12);
-
-            color: #7daaff;
-        }
-
-        .photo-step.completed {
-            border-color:
-                rgba(85,216,121,0.55);
-
-            background:
-                rgba(85,216,121,0.10);
-
-            color: #72dc8e;
-        }
-
-
-        /* =====================================================
-           PHOTO COUNT
-        ===================================================== */
-
-        .photo-count {
-            text-align: center;
-
-            margin-bottom: 13px;
-        }
-
-        .photo-count-number {
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .photo-count-label {
-            margin-top: 2px;
-
-            color: #6f767f;
-
-            font-size: 9px;
-        }
-
-
-        /* =====================================================
-           START BUTTON
-        ===================================================== */
-
-        .start-button {
-            width: 100%;
-
-            padding: 14px 18px;
-
-            border: none;
-
-            border-radius: 10px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #3678e5,
-                    #285cc0
-                );
-
-            color: white;
-
-            font-size: 13px;
-            font-weight: 700;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 8px 25px
-                rgba(45,102,205,0.25);
-
-            transition: 0.2s;
-        }
-
-        .start-button:hover:not(:disabled) {
-            transform: translateY(-1px);
-        }
-
-        .start-button:disabled {
-            cursor: not-allowed;
-
-            opacity: 0.45;
-        }
-
-
-        /* =====================================================
-           CONNECTION BUTTONS
-        ===================================================== */
-
-        .connection-buttons {
-            display: grid;
-
-            grid-template-columns:
-                1fr 1fr;
-
-            gap: 6px;
-
-            margin-top: 7px;
-        }
-
-        .small-button {
-            padding: 8px 8px;
-
-            border-radius: 8px;
-
-            border:
-                1px solid
-                rgba(255,255,255,0.08);
-
-            background:
-                rgba(255,255,255,0.055);
-
-            color: #ddd;
-
-            font-size: 10px;
-
-            cursor: pointer;
-
-            transition: 0.2s;
-        }
-
-        .small-button:hover {
-            background:
-                rgba(255,255,255,0.10);
-        }
-
-
-        /* =====================================================
-           MESSAGE
-        ===================================================== */
-
-        .message {
-            min-height: 14px;
-
-            margin-top: 9px;
-
-            text-align: center;
-
-            color: #8d959f;
-
-            font-size: 10px;
-
-            line-height: 1.4;
-        }
-
-        .message.error {
-            color: #ff9292;
-        }
-
-        .message.success {
-            color: #8ce5a2;
-        }
-
-
-        /* =====================================================
-           PHOTO BEAN
-        ===================================================== */
-
-        .photo-bean-host {
-            position: fixed;
-
-            left: 35px;
-            top: 105px;
-
-            z-index: 9999;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 15px;
-
-            pointer-events: none;
-
-            visibility: visible;
-
-            opacity: 1;
-        }
-
-        .bean-speech {
-            width: 220px;
-
-            padding: 13px 16px;
-
-            border-radius:
-                16px 16px 16px 5px;
-
-            background:
-                rgba(255,255,255,0.96);
-
-            color: #17191d;
-
-            font-size: 12px;
-
-            font-weight: 700;
-
-            line-height: 1.4;
-
-            box-shadow:
-                0 12px 35px
-                rgba(0,0,0,0.35);
-        }
-
-        .photo-bean-character {
-            position: relative;
-
-            width: 110px;
-            height: 115px;
-
-            flex-shrink: 0;
-
-            transform-origin:
-                center bottom;
-
-            animation:
-                beanIdle
-                2.5s
-                ease-in-out
-                infinite;
-
-            filter:
-                drop-shadow(
-                    0 12px 18px
-                    rgba(0,0,0,0.45)
-                );
-        }
-
-        .bean-ear {
-            position: absolute;
-
-            top: 4px;
-
-            width: 39px;
-            height: 39px;
-
-            border-radius: 50%;
-
-            background: #d8b69d;
-
-            border:
-                5px solid
-                #765b4e;
-
-            z-index: 1;
-        }
-
-        .bean-ear.left {
-            left: 8px;
-        }
-
-        .bean-ear.right {
-            right: 8px;
-        }
-
-        .bean-head {
-            position: absolute;
-
-            left: 20px;
-            top: 18px;
-
-            width: 70px;
-            height: 65px;
-
-            border-radius:
-                48% 48% 45% 45%;
-
-            background: #c9a087;
-
-            border:
-                4px solid
-                #6d5549;
-
-            z-index: 2;
-        }
-
-        .bean-eye {
-            position: absolute;
-
-            top: 42px;
-
-            width: 7px;
-            height: 9px;
-
-            border-radius: 50%;
-
-            background: #171717;
-
-            z-index: 4;
-
-            animation:
-                beanBlink
-                4s
-                infinite;
-        }
-
-        .bean-eye.left {
-            left: 41px;
-        }
-
-        .bean-eye.right {
-            left: 62px;
-        }
-
-        .bean-nose {
-            position: absolute;
-
-            left: 51px;
-            top: 56px;
-
-            width: 9px;
-            height: 7px;
-
-            border-radius: 50%;
-
-            background: #342724;
-
-            z-index: 4;
-        }
-
-        .bean-camera {
-            position: absolute;
-
-            left: 19px;
-            bottom: 0;
-
-            width: 73px;
-            height: 47px;
-
-            border-radius: 10px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    #3a3f46,
-                    #24282e
-                );
-
-            border:
-                4px solid
-                #15171a;
-
-            z-index: 5;
-        }
-
-        .bean-camera-top {
-            position: absolute;
-
-            left: 12px;
-            top: -11px;
-
-            width: 25px;
-            height: 11px;
-
-            border-radius:
-                5px 5px 0 0;
-
-            background: #30343a;
-
-            border:
-                3px solid
-                #15171a;
-
-            border-bottom: none;
-        }
-
-        .bean-lens {
-            position: absolute;
-
-            left: 22px;
-            top: 6px;
-
-            width: 30px;
-            height: 30px;
-
-            border-radius: 50%;
-
-            background: #0e1115;
-
-            border:
-                4px solid
-                #707782;
-
-            box-shadow:
-                inset 0 0 0 4px
-                #252a31;
-        }
-
-        .bean-lens::after {
-            content: "";
-
-            position: absolute;
-
-            left: 5px;
-            top: 4px;
-
-            width: 7px;
-            height: 7px;
-
-            border-radius: 50%;
-
-            background:
-                rgba(255,255,255,0.75);
-        }
-
-        .bean-camera-flash {
-            position: absolute;
-
-            right: 6px;
-            top: 6px;
-
-            width: 8px;
-            height: 7px;
-
-            border-radius: 2px;
-
-            background: #e8cd6b;
-        }
-
-
-        /* =====================================================
-           PHOTO BEAN STATES
-        ===================================================== */
-
-        .photo-bean-host.ready
-        .photo-bean-character {
-            animation:
-                beanHappy
-                1.4s
-                ease-in-out
-                infinite;
-        }
-
-        .photo-bean-host.countdown
-        .photo-bean-character {
-            animation:
-                beanReady
-                0.5s
-                ease-in-out
-                infinite alternate;
-        }
-
-        .photo-bean-host.capture
-        .photo-bean-character {
-            animation:
-                beanCapture
-                0.45s
-                ease-out;
-        }
-
-        .photo-bean-host.capture
-        .bean-camera-flash {
-            background: white;
-
-            box-shadow:
-                0 0 28px 14px
-                rgba(255,245,190,0.95);
-        }
-
-        .photo-bean-host.celebrate
-        .photo-bean-character {
-            animation:
-                beanCelebrate
-                0.7s
-                ease-in-out
-                2;
-        }
-
-        .photo-bean-host.processing
-        .bean-lens {
-            animation:
-                beanLensSpin
-                0.7s
-                linear
-                infinite;
-        }
-
-        .photo-bean-host.error
-        .photo-bean-character {
-            animation:
-                beanError
-                0.35s
-                ease-in-out
-                3;
-        }
-
-
-        /* =====================================================
-           PHOTO BEAN ANIMATIONS
-        ===================================================== */
-
-        @keyframes beanIdle {
-
-            0%,
-            100% {
-                transform:
-                    translateY(0)
-                    rotate(0deg);
-            }
-
-            50% {
-                transform:
-                    translateY(-6px)
-                    rotate(1deg);
-            }
-        }
-
-        @keyframes beanHappy {
-
-            0%,
-            100% {
-                transform:
-                    translateY(0);
-            }
-
-            50% {
-                transform:
-                    translateY(-9px);
-            }
-        }
-
-        @keyframes beanBlink {
-
-            0%,
-            45%,
-            49%,
-            100% {
-                transform:
-                    scaleY(1);
-            }
-
-            47% {
-                transform:
-                    scaleY(0.12);
-            }
-        }
-
-        @keyframes beanReady {
-
-            from {
-                transform:
-                    translateY(0)
-                    scale(1);
-            }
-
-            to {
-                transform:
-                    translateY(-8px)
-                    scale(1.05);
-            }
-        }
-
-        @keyframes beanCapture {
-
-            0% {
-                transform:
-                    scale(1);
-            }
-
-            35% {
-                transform:
-                    scale(0.90);
-            }
-
-            65% {
-                transform:
-                    scale(1.12);
-            }
-
-            100% {
-                transform:
-                    scale(1);
-            }
-        }
-
-        @keyframes beanCelebrate {
-
-            0%,
-            100% {
-                transform:
-                    translateY(0)
-                    rotate(0deg);
-            }
-
-            25% {
-                transform:
-                    translateY(-14px)
-                    rotate(-7deg);
-            }
-
-            50% {
-                transform:
-                    translateY(-5px)
-                    rotate(7deg);
-            }
-
-            75% {
-                transform:
-                    translateY(-13px)
-                    rotate(-5deg);
-            }
-        }
-
-        @keyframes beanLensSpin {
-
-            from {
-                transform:
-                    rotate(0deg);
-            }
-
-            to {
-                transform:
-                    rotate(360deg);
-            }
-        }
-
-        @keyframes beanError {
-
-            0%,
-            100% {
-                transform:
-                    translateX(0);
-            }
-
-            50% {
-                transform:
-                    translateX(8px);
-            }
-        }
-
-
-        /* =====================================================
-           SESSION UI HIDDEN STATE
-        ===================================================== */
-
-        .booth-session-active header {
-            opacity: 0;
-
-            transform:
-                translateY(-20px);
-
-            pointer-events: none;
-        }
-
-        .booth-session-active
-        .control-panel {
-            opacity: 0;
-
-            transform:
-                translateY(25px);
-
-            pointer-events: none;
-        }
-
-        .booth-session-active
-        .camera-status {
-            opacity: 0;
-
-            transform:
-                translateY(20px);
-
-            pointer-events: none;
-        }
-
-        .booth-session-active
-        .camera-frame {
-            width:
-                min(
-                    82vw,
-                    82vh * 1.55
-                );
-
-            height:
-                min(
-                    82vh,
-                    82vw / 1.55
-                );
-        }
-
-
-        /* =====================================================
-           COUNTDOWN
-        ===================================================== */
-
-        .countdown-overlay {
-            position: fixed;
-
-            inset: 0;
-
-            display: none;
-
-            align-items: center;
-            justify-content: center;
-
-            z-index: 10000;
-
-            pointer-events: none;
-        }
-
-        .countdown-overlay.visible {
-            display: flex;
-        }
-
-        .countdown-number {
-            width: 170px;
-            height: 170px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 50%;
-
-            background:
-                rgba(0,0,0,0.50);
-
-            border:
-                2px solid
-                rgba(255,255,255,0.70);
-
-            backdrop-filter:
-                blur(7px);
-
-            box-shadow:
-                0 0 60px
-                rgba(0,0,0,0.35);
-
-            font-size: 82px;
-
-            font-weight: 800;
-
-            color: white;
-
-            text-shadow:
-                0 5px 25px
-                rgba(0,0,0,0.7);
-
-            animation:
-                countdownPulse
-                0.8s
-                ease-out;
-        }
-
-        @keyframes countdownPulse {
-
-            0% {
-                transform:
-                    scale(1.25);
-
-                opacity: 0;
-            }
-
-            25% {
-                opacity: 1;
-            }
-
-            100% {
-                transform:
-                    scale(1);
-
-                opacity: 1;
-            }
-        }
-
-
-        /* =====================================================
-           CAMERA FLASH
-        ===================================================== */
-
-        .flash {
-            position: fixed;
-
-            inset: 0;
-
-            background: white;
-
-            opacity: 0;
-
-            z-index: 11000;
-
-            pointer-events: none;
-        }
-
-        .flash.active {
-            animation:
-                cameraFlash
-                0.35s
-                ease-out;
-        }
-
-        @keyframes cameraFlash {
-
-            0% {
-                opacity: 0;
-            }
-
-            25% {
-                opacity: 0.9;
-            }
-
-            100% {
-                opacity: 0;
-            }
-        }
-
-
-        /* =====================================================
-           COLLAGE PREVIEW
-        ===================================================== */
-
-        .collage-preview-overlay {
-            position: fixed;
-
-            inset: 0;
-
-            display: none;
-
-            align-items: center;
-            justify-content: center;
-
-            background:
-                rgba(0,0,0,0.82);
-
-            backdrop-filter:
-                blur(15px);
-
-            z-index: 12000;
-
-            padding: 30px;
-        }
-
-        .collage-preview-overlay.visible {
-            display: flex;
-        }
-
-        .collage-preview-container {
-            max-width:
-                min(90vw, 1000px);
-
-            max-height: 90vh;
-
-            display: flex;
-
-            flex-direction: column;
-
-            align-items: center;
-
-            gap: 14px;
-        }
-
-        .collage-title {
-            margin: 0;
-
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        #collageImage {
-            display: none;
-
-            max-width: 100%;
-            max-height: 72vh;
-
-            width: auto;
-            height: auto;
-
-            border-radius: 10px;
-
-            box-shadow:
-                0 25px 80px
-                rgba(0,0,0,0.55);
-        }
-
-        .collage-ready {
-            color: #8ce5a2;
-
-            font-size: 11px;
-        }
-
-
-        /* =====================================================
-           PREVIEW BUTTONS
-        ===================================================== */
-
-        .preview-buttons {
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            gap: 9px;
-
-            flex-wrap: wrap;
-        }
-
-        .preview-button {
-            padding: 11px 18px;
-
-            border: none;
-
-            border-radius: 9px;
-
-            color: white;
-
-            font-size: 12px;
-            font-weight: 700;
-
-            cursor: pointer;
-
-            transition:
-                transform 0.2s,
-                opacity 0.2s,
-                background 0.2s;
-        }
-
-        .preview-button:hover {
-            transform: translateY(-1px);
-        }
-
-        .preview-button:disabled {
-            opacity: 0.45;
-
-            cursor: not-allowed;
-
-            transform: none;
-        }
-
-        .retake-button {
-            background:
-                linear-gradient(
-                    135deg,
-                    #3678e5,
-                    #285cc0
-                );
-        }
-
-        .print-button {
-            background:
-                linear-gradient(
-                    135deg,
-                    #c36b25,
-                    #9d4e18
-                );
-        }
-
-        .menu-button {
-            background:
-                rgba(255,255,255,0.08);
-
-            border:
-                1px solid
-                rgba(255,255,255,0.12);
-
-            color:
-                rgba(255,255,255,0.85);
-        }
-
-
-        /* =====================================================
-           RESPONSIVE
-        ===================================================== */
-
-        @media (max-width: 800px) {
-
-            html,
-            body {
-                overflow: auto;
-            }
-
-            .booth-area {
-                position: relative;
-
-                top: 72px;
-
-                min-height:
-                    calc(100vh - 72px);
-
-                padding: 20px;
-
-                flex-direction: column;
-
-                justify-content:
-                    flex-start;
-            }
-
-            .camera-frame {
-                width: 100%;
-
-                height: auto;
-
-                aspect-ratio: 16 / 10;
-
-                max-width: none;
-                max-height: none;
-
-                min-width: 0;
-                min-height: 0;
-            }
-
-            .control-panel {
-                position: relative;
-
-                right: auto;
-                bottom: auto;
-
-                width: 100%;
-
-                max-width: 600px;
-            }
-
-            .camera-status {
-                position: relative;
-
-                left: auto;
-                bottom: auto;
-
-                margin: 10px 20px;
-            }
-
-            .photo-bean-host {
-                left: 15px;
-                top: 85px;
-            }
-
-            .photo-bean-character {
-                transform: scale(0.8);
-
-                transform-origin:
-                    center center;
-            }
-
-            .bean-speech {
-                width: 160px;
-
-                font-size: 10px;
-            }
-
-            .preview-buttons {
-                flex-direction: column;
-
-                width: 100%;
-            }
-
-            .preview-button {
-                width: 100%;
-
-                max-width: 300px;
-            }
-        }
-
-    </style>
+    <title>
+        Still Motion Archives Photobooth
+    </title>
+
+
+    <!-- =====================================================
+         MAIN CSS
+         C:\Users\kinji\Photobooth\static\css\main.css
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/main.css') }}"
+    >
 
 </head>
 
 
-<body>
+<body class="phase-idle">
 
 
-<!-- =========================================================
-     HEADER
-========================================================= -->
+    <!-- =====================================================
+         PHASE BACKGROUND
 
-<header>
+         BLUE   = Idle / Ready
+         YELLOW = Photo Session
+         CORAL  = Complete
+    ====================================================== -->
 
-    <div class="brand">
+    <div
+        id="phaseBackground"
+        class="phase-background"
+    ></div>
 
-        <div class="brand-icon">
-            📷
-        </div>
 
-        <div class="brand-text">
+    <!--
+        This element creates the animated colour wipe
+        when moving between phases.
+    -->
 
-            <h1>
-                Photobooth
-            </h1>
+    <div
+        id="phaseTransition"
+        class="phase-transition"
+    ></div>
 
-            <p>
-                Capture the moment
-            </p>
 
-        </div>
+    <!--
+        Small phase indicator.
+    -->
 
+    <div
+        id="phaseLabel"
+        class="phase-label"
+    >
+        READY
     </div>
 
 
-    <a
-        href="/design"
-        class="design-link"
-    >
-        🎨 Design Studio
-    </a>
 
-</header>
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header>
 
 
+        <!-- BRAND -->
 
-<!-- =========================================================
-     BOOTH
-========================================================= -->
+        <div class="brand">
 
-<div class="booth-area">
-
-    <div class="camera-frame">
-
-        <img
-            id="liveview"
-            src="/liveview"
-            alt="Sony α7C II Live View"
-        >
-
-        <div
-            class="camera-overlay"
-        ></div>
-
-        <div
-            class="camera-label"
-        >
-            SONY α7C II • LIVE
-        </div>
-
-        <div
-            id="noCamera"
-            class="no-camera"
-        >
-
-            <div
-                class="no-camera-icon"
-            >
+            <div class="brand-icon">
                 📷
             </div>
 
-            <div
-                class="no-camera-text"
+
+            <div class="brand-text">
+
+                <h1>
+                    Photobooth
+                </h1>
+
+                <p>
+                    Still Motion Archives
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- DESIGN STUDIO -->
+
+        <a
+            href="/design"
+            class="design-link"
+        >
+            🎨 Design Studio
+        </a>
+
+
+    </header>
+
+
+
+    <!-- =====================================================
+         MAIN CAMERA AREA
+    ====================================================== -->
+
+    <main class="booth-area">
+
+
+        <div class="camera-frame">
+
+
+            <!-- =============================================
+                 SONY CAMERA LIVE VIEW
+            ============================================== -->
+
+            <img
+                id="liveview"
+                src="/liveview"
+                alt="Sony α7C II Live View"
             >
-                Camera not connected
-            </div>
 
-        </div>
 
-    </div>
 
-</div>
-
-
-
-<!-- =========================================================
-     CAMERA STATUS
-========================================================= -->
-
-<div class="camera-status">
-
-    <div
-        id="statusDot"
-        class="status-dot"
-    ></div>
-
-    <span id="status">
-        Camera disconnected
-    </span>
-
-</div>
-
-
-
-<!-- =========================================================
-     CONTROL PANEL
-========================================================= -->
-
-<div class="control-panel">
-
-    <h2 class="control-title">
-        Photo Session
-    </h2>
-
-    <p class="control-description">
-        Press Start and the booth will automatically
-        capture three photos and create your collage.
-    </p>
-
-
-    <div class="photo-progress">
-
-        <div
-            class="photo-step"
-            id="step1"
-        >
-
-            <div class="photo-step-number">
-                1
-            </div>
-
-            <div>
-                Ready
-            </div>
-
-        </div>
-
-
-        <div
-            class="photo-step"
-            id="step2"
-        >
-
-            <div class="photo-step-number">
-                2
-            </div>
-
-            <div>
-                Ready
-            </div>
-
-        </div>
-
-
-        <div
-            class="photo-step"
-            id="step3"
-        >
-
-            <div class="photo-step-number">
-                3
-            </div>
-
-            <div>
-                Ready
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="photo-count">
-
-        <div
-            class="photo-count-number"
-            id="photoCount"
-        >
-            0 / 3
-        </div>
-
-        <div class="photo-count-label">
-            Photos captured
-        </div>
-
-    </div>
-
-
-    <button
-        class="start-button"
-        id="startSessionButton"
-        onclick="startSession()"
-        disabled
-    >
-        📸 Start Photo Session
-    </button>
-
-
-    <div class="connection-buttons">
-
-        <button
-            class="small-button"
-            onclick="connectCamera()"
-        >
-            🔌 Connect Camera
-        </button>
-
-        <button
-            class="small-button"
-            onclick="disconnectCamera()"
-        >
-            Disconnect
-        </button>
-
-    </div>
-
-
-    <div
-        id="message"
-        class="message"
-    >
-        Connect the camera to begin.
-    </div>
-
-</div>
-
-
-
-<!-- =========================================================
-     PHOTO BEAN
-========================================================= -->
-
-<div
-    id="photoBean"
-    class="photo-bean-host"
->
-
-    <div
-        id="beanSpeech"
-        class="bean-speech"
-    >
-        Connect the camera and I'll get us ready!
-    </div>
-
-
-    <div class="photo-bean-character">
-
-        <div
-            class="bean-ear left"
-        ></div>
-
-        <div
-            class="bean-ear right"
-        ></div>
-
-
-        <div
-            class="bean-head"
-        ></div>
-
-
-        <div
-            class="bean-eye left"
-        ></div>
-
-        <div
-            class="bean-eye right"
-        ></div>
-
-
-        <div
-            class="bean-nose"
-        ></div>
-
-
-        <div class="bean-camera">
+            <!-- =============================================
+                 CAMERA VISUAL OVERLAY
+            ============================================== -->
 
             <div
-                class="bean-camera-top"
+                class="camera-overlay"
             ></div>
 
-            <div
-                class="bean-lens"
-            ></div>
+
+
+            <!-- =============================================
+                 CAMERA LABEL
+            ============================================== -->
 
             <div
-                class="bean-camera-flash"
-            ></div>
+                class="camera-label"
+            >
+                SONY α7C II • LIVE
+            </div>
+
+
+
+            <!-- =============================================
+                 CAMERA DISCONNECTED SCREEN
+            ============================================== -->
+
+            <div
+                id="noCamera"
+                class="no-camera"
+            >
+
+
+                <div
+                    class="no-camera-icon"
+                >
+                    📷
+                </div>
+
+
+                <div
+                    class="no-camera-text"
+                >
+                    Camera not connected
+                </div>
+
+
+            </div>
+
 
         </div>
 
+
+    </main>
+
+
+
+    <!-- =====================================================
+         CAMERA CONNECTION STATUS
+    ====================================================== -->
+
+    <div class="camera-status">
+
+
+        <div
+            id="statusDot"
+            class="status-dot"
+        ></div>
+
+
+        <span id="status">
+            Camera disconnected
+        </span>
+
+
     </div>
 
-</div>
 
 
+    <!-- =====================================================
+         CONTROL PANEL
+    ====================================================== -->
 
-<!-- =========================================================
-     COUNTDOWN
-========================================================= -->
-
-<div
-    id="countdownOverlay"
-    class="countdown-overlay"
->
-
-    <div
-        id="countdownNumber"
-        class="countdown-number"
-    >
-        3
-    </div>
-
-</div>
+    <section class="control-panel">
 
 
+        <!-- TITLE -->
 
-<!-- =========================================================
-     FLASH
-========================================================= -->
-
-<div
-    id="flash"
-    class="flash"
-></div>
-
-
-
-<!-- =========================================================
-     COLLAGE PREVIEW
-========================================================= -->
-
-<div
-    id="collagePreviewOverlay"
-    class="collage-preview-overlay"
->
-
-    <div class="collage-preview-container">
-
-        <h2 class="collage-title">
-            Your Photo Booth Collage
+        <h2 class="control-title">
+            Photo Session
         </h2>
 
 
-        <img
-            id="collageImage"
-            src=""
-            alt="Finished Photobooth Collage"
+
+        <!-- DESCRIPTION -->
+
+        <p class="control-description">
+
+            Press Start and the booth will automatically
+            capture three photos and create your collage.
+
+        </p>
+
+
+
+        <!-- =================================================
+             PHOTO PROGRESS
+        ================================================== -->
+
+        <div class="photo-progress">
+
+
+            <!-- PHOTO 1 -->
+
+            <div
+                class="photo-step"
+                id="step1"
+            >
+
+                <div class="photo-step-number">
+                    1
+                </div>
+
+                <div>
+                    Ready
+                </div>
+
+            </div>
+
+
+
+            <!-- PHOTO 2 -->
+
+            <div
+                class="photo-step"
+                id="step2"
+            >
+
+                <div class="photo-step-number">
+                    2
+                </div>
+
+                <div>
+                    Ready
+                </div>
+
+            </div>
+
+
+
+            <!-- PHOTO 3 -->
+
+            <div
+                class="photo-step"
+                id="step3"
+            >
+
+                <div class="photo-step-number">
+                    3
+                </div>
+
+                <div>
+                    Ready
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             PHOTO COUNTER
+        ================================================== -->
+
+        <div class="photo-count">
+
+
+            <div
+                class="photo-count-number"
+                id="photoCount"
+            >
+                0 / 3
+            </div>
+
+
+            <div class="photo-count-label">
+                Photos captured
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             START SESSION
+        ================================================== -->
+
+        <button
+            type="button"
+            class="start-button"
+            id="startSessionButton"
+            onclick="startSession()"
+            disabled
         >
 
+            📸 Start Photo Session
+
+        </button>
+
+
+
+        <!-- =================================================
+             CAMERA CONNECTION BUTTONS
+        ================================================== -->
+
+        <div class="connection-buttons">
+
+
+            <button
+                type="button"
+                class="small-button"
+                onclick="connectCamera()"
+            >
+
+                🔌 Connect Camera
+
+            </button>
+
+
+
+            <button
+                type="button"
+                class="small-button"
+                onclick="disconnectCamera()"
+            >
+
+                Disconnect
+
+            </button>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             STATUS / ERROR MESSAGE
+        ================================================== -->
 
         <div
-            id="collageReady"
-            class="collage-ready"
+            id="message"
+            class="message"
         >
-            Collage ready
+
+            Connect the camera to begin.
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================================
+         PHOTO BEAN
+
+         Image location:
+
+         static\
+             mascot\
+                 photo_bean.png
+    ====================================================== -->
+
+    <div
+        id="photoBean"
+        class="photo-bean-host"
+    >
+
+
+        <!-- SPEECH BUBBLE -->
+
+        <div
+            id="beanSpeech"
+            class="bean-speech"
+        >
+
+            Connect the camera and I'll get us ready!
+
         </div>
 
 
-        <div class="preview-buttons">
 
-            <button
-                id="retakeButton"
-                class="preview-button retake-button"
-                onclick="retakeSession()"
-            >
-                🔄 Retake Session
-            </button>
+        <!-- PHOTO BEAN IMAGE -->
 
+        <img
+            id="photoBeanImage"
+            class="photo-bean-image"
+            src="{{ url_for('static', filename='mascot/photo_bean.png') }}"
+            alt="Photo Bean"
+        >
 
-            <button
-                id="printButton"
-                class="preview-button print-button"
-                onclick="printCollage()"
-            >
-                🖨️ Print Collage
-            </button>
-
-
-            <button
-                id="menuButton"
-                class="preview-button menu-button"
-                onclick="returnToMenu()"
-            >
-                🏠 Return to Menu
-            </button>
-
-        </div>
 
     </div>
 
-</div>
 
 
+    <!-- =====================================================
+         COUNTDOWN
 
-<script>
+         Displays:
 
+         3
+         2
+         1
+         📸
+    ====================================================== -->
 
-// ============================================================
-// STATE
-// ============================================================
+    <div
+        id="countdownOverlay"
+        class="countdown-overlay"
+    >
 
-let sessionActive = false;
 
-let photoCount = 0;
+        <div
+            id="countdownNumber"
+            class="countdown-number"
+        >
 
-let cameraConnected = false;
+            3
 
-let automationRunning = false;
+        </div>
 
 
+    </div>
 
-// ============================================================
-// ELEMENTS
-// ============================================================
 
-const statusElement =
-    document.getElementById("status");
 
-const statusDot =
-    document.getElementById("statusDot");
+    <!-- =====================================================
+         CAMERA FLASH EFFECT
+    ====================================================== -->
 
-const messageElement =
-    document.getElementById("message");
+    <div
+        id="flash"
+        class="flash"
+    ></div>
 
-const startButton =
-    document.getElementById("startSessionButton");
 
-const countdownOverlay =
-    document.getElementById("countdownOverlay");
 
-const countdownNumber =
-    document.getElementById("countdownNumber");
+    <!-- =====================================================
+         COLLAGE PREVIEW
+    ====================================================== -->
 
-const flash =
-    document.getElementById("flash");
+    <div
+        id="collagePreviewOverlay"
+        class="collage-preview-overlay"
+    >
 
-const collageOverlay =
-    document.getElementById("collagePreviewOverlay");
 
-const collageImage =
-    document.getElementById("collageImage");
+        <div class="collage-preview-container">
 
-const printButton =
-    document.getElementById("printButton");
 
-const retakeButton =
-    document.getElementById("retakeButton");
+            <!-- TITLE -->
 
-const menuButton =
-    document.getElementById("menuButton");
+            <h2 class="collage-title">
 
-const photoBean =
-    document.getElementById("photoBean");
+                Your Photo Booth Collage
 
-const beanSpeech =
-    document.getElementById("beanSpeech");
+            </h2>
 
 
 
-// ============================================================
-// PHOTO BEAN
-// ============================================================
+            <!-- COLLAGE IMAGE -->
 
-function setBeanState(
-    state,
-    message
-) {
+            <img
+                id="collageImage"
+                src=""
+                alt="Finished Photobooth Collage"
+            >
 
-    photoBean.className =
-        "photo-bean-host";
 
 
-    if (state) {
+            <!-- READY MESSAGE -->
 
-        photoBean.classList.add(
-            state
-        );
+            <div
+                id="collageReady"
+                class="collage-ready"
+            >
 
-    }
+                Collage ready
 
+            </div>
 
-    if (message) {
 
-        beanSpeech.textContent =
-            message;
 
-    }
+            <!-- =============================================
+                 COLLAGE BUTTONS
+            ============================================== -->
 
-}
+            <div class="preview-buttons">
 
 
-function resetBean() {
+                <!-- RETAKE -->
 
-    if (cameraConnected) {
+                <button
+                    type="button"
+                    id="retakeButton"
+                    class="preview-button retake-button"
+                    onclick="retakeSession()"
+                >
 
-        setBeanState(
-            "ready",
-            "Ready when you are! Press Start Photo Session."
-        );
+                    🔄 Retake Session
 
-    }
+                </button>
 
-    else {
 
-        setBeanState(
-            "",
-            "Connect the camera and I'll get us ready!"
-        );
 
-    }
+                <!-- PRINT -->
 
-}
+                <button
+                    type="button"
+                    id="printButton"
+                    class="preview-button print-button"
+                    onclick="printCollage()"
+                >
 
+                    🖨️ Print Collage
 
-function showBeanError(
-    message
-) {
+                </button>
 
-    setBeanState(
-        "error",
-        message ||
-        "Something went wrong."
-    );
 
-}
 
+                <!-- RETURN -->
 
+                <button
+                    type="button"
+                    id="menuButton"
+                    class="preview-button menu-button"
+                    onclick="returnToMenu()"
+                >
 
-// ============================================================
-// STATUS
-// ============================================================
+                    🏠 Return to Menu
 
-function setStatus(message) {
+                </button>
 
-    statusElement.textContent =
-        message;
 
-}
+            </div>
 
 
+        </div>
 
-// ============================================================
-// CONNECTION INDICATOR
-// ============================================================
 
-function setConnectionIndicator(
-    connected
-) {
+    </div>
 
-    if (connected) {
 
-        statusDot.classList.add(
-            "connected"
-        );
 
-    }
+    <!-- =====================================================
+         MAIN JAVASCRIPT
 
-    else {
+         C:\Users\kinji\Photobooth\static\js\main.js
 
-        statusDot.classList.remove(
-            "connected"
-        );
+         Keep this at the bottom of the page.
+    ====================================================== -->
 
-    }
-
-}
-
-
-
-// ============================================================
-// MESSAGE
-// ============================================================
-
-function showMessage(
-    message,
-    type = ""
-) {
-
-    messageElement.textContent =
-        message;
-
-    messageElement.className =
-        "message " + type;
-
-}
-
-
-
-// ============================================================
-// SESSION UI
-// ============================================================
-
-function setSessionUI(
-    active
-) {
-
-    if (active) {
-
-        document.body.classList.add(
-            "booth-session-active"
-        );
-
-    }
-
-    else {
-
-        document.body.classList.remove(
-            "booth-session-active"
-        );
-
-    }
-
-}
-
-
-
-// ============================================================
-// CONNECT CAMERA
-// ============================================================
-
-async function connectCamera() {
-
-    if (cameraConnected) {
-        return;
-    }
-
-
-    setStatus(
-        "Connecting to camera..."
-    );
-
-
-    showMessage(
-        "Connecting to Sony α7C II..."
-    );
-
-
-    setBeanState(
-        "processing",
-        "Connecting to the camera..."
-    );
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/connect",
-                {
-                    method: "POST"
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
-
-        }
-
-
-        cameraConnected = true;
-
-
-        setConnectionIndicator(
-            true
-        );
-
-
-        setStatus(
-            "Camera connected"
-        );
-
-
-        document.getElementById(
-            "noCamera"
-        ).style.display =
-            "none";
-
-
-        startButton.disabled =
-            false;
-
-
-        showMessage(
-            "Camera ready. Press Start Photo Session.",
-            "success"
-        );
-
-
-        setBeanState(
-            "celebrate",
-            "Camera connected! Let's take some photos!"
-        );
-
-
-        setTimeout(
-            resetBean,
-            1500
-        );
-
-    }
-
-    catch (error) {
-
-        cameraConnected = false;
-
-
-        setConnectionIndicator(
-            false
-        );
-
-
-        setStatus(
-            "Camera connection failed"
-        );
-
-
-        startButton.disabled =
-            true;
-
-
-        showMessage(
-            error.message,
-            "error"
-        );
-
-
-        showBeanError(
-            "I couldn't connect to the camera."
-        );
-
-    }
-
-}
-
-
-
-// ============================================================
-// DISCONNECT CAMERA
-// ============================================================
-
-async function disconnectCamera() {
-
-    if (automationRunning) {
-
-        showMessage(
-            "Please wait until the session finishes.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/disconnect",
-                {
-                    method: "POST"
-                }
-            );
-
-
-        await response.json();
-
-
-        cameraConnected = false;
-
-        sessionActive = false;
-
-
-        setConnectionIndicator(
-            false
-        );
-
-
-        setStatus(
-            "Camera disconnected"
-        );
-
-
-        document.getElementById(
-            "noCamera"
-        ).style.display =
-            "flex";
-
-
-        startButton.disabled =
-            true;
-
-
-        showMessage(
-            "Camera disconnected."
-        );
-
-
-        setBeanState(
-            "",
-            "Camera disconnected. I'll wait here!"
-        );
-
-    }
-
-    catch (error) {
-
-        showMessage(
-            error.message,
-            "error"
-        );
-
-
-        showBeanError(
-            error.message
-        );
-
-    }
-
-}
-
-
-
-// ============================================================
-// START SESSION
-// ============================================================
-
-async function startSession() {
-
-    if (!cameraConnected) {
-
-        showMessage(
-            "Please connect the camera first.",
-            "error"
-        );
-
-
-        showBeanError(
-            "Connect the camera first!"
-        );
-
-        return;
-
-    }
-
-
-    if (automationRunning) {
-        return;
-    }
-
-
-    automationRunning = true;
-
-    sessionActive = true;
-
-    photoCount = 0;
-
-
-    setSessionUI(
-        true
-    );
-
-
-    startButton.disabled =
-        true;
-
-
-    resetPhotoSteps();
-
-    updatePhotoCount();
-
-    hideCollage();
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/start-session",
-                {
-                    method: "POST"
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
-
-        }
-
-
-        showMessage(
-            "Get ready..."
-        );
-
-
-        setStatus(
-            "Photo session starting..."
-        );
-
-
-        setBeanState(
-            "countdown",
-            "Three photos! Get ready!"
-        );
-
-
-        await sleep(
-            1200
-        );
-
-
-        for (
-            let photoNumber = 1;
-            photoNumber <= 3;
-            photoNumber++
-        ) {
-
-            await captureAutomaticPhoto(
-                photoNumber
-            );
-
-
-            if (
-                photoNumber < 3
-            ) {
-
-                showMessage(
-                    "Get ready for the next photo..."
-                );
-
-
-                if (
-                    photoNumber === 1
-                ) {
-
-                    setBeanState(
-                        "ready",
-                        "Nice! Try another pose!"
-                    );
-
-                }
-
-                else {
-
-                    setBeanState(
-                        "ready",
-                        "Great! One last photo!"
-                    );
-
-                }
-
-
-                await sleep(
-                    1500
-                );
-
-            }
-
-        }
-
-
-        sessionActive = false;
-
-
-        setStatus(
-            "Creating collage..."
-        );
-
-
-        showMessage(
-            "All photos captured. Creating collage..."
-        );
-
-
-        setBeanState(
-            "processing",
-            "Great shots! I'm making your collage..."
-        );
-
-
-        await sleep(
-            800
-        );
-
-
-        await createCollageAutomatically();
-
-    }
-
-    catch (error) {
-
-        sessionActive = false;
-
-
-        setSessionUI(
-            false
-        );
-
-
-        showMessage(
-            error.message,
-            "error"
-        );
-
-
-        setStatus(
-            "Session failed"
-        );
-
-
-        showBeanError(
-            "Something went wrong during the photo session."
-        );
-
-    }
-
-    finally {
-
-        automationRunning = false;
-
-
-        if (cameraConnected) {
-
-            startButton.disabled =
-                false;
-
-        }
-
-    }
-
-}
-
-
-
-// ============================================================
-// CAPTURE PHOTO
-// ============================================================
-
-async function captureAutomaticPhoto(
-    photoNumber
-) {
-
-    const step =
-        document.getElementById(
-            `step${photoNumber}`
-        );
-
-
-    step.classList.add(
-        "active"
-    );
-
-
-    step.querySelector(
-        "div:last-child"
-    ).textContent =
-        "Get ready";
-
-
-    setStatus(
-        `Preparing photo ${photoNumber}...`
-    );
-
-
-    setBeanState(
-        "countdown",
-        `Photo ${photoNumber} - get ready!`
-    );
-
-
-    await runCountdown();
-
-
-    showMessage(
-        `Taking photo ${photoNumber}...`
-    );
-
-
-    setStatus(
-        `Capturing photo ${photoNumber}...`
-    );
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/take-photo",
-                {
-                    method: "POST"
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
-
-        }
-
-
-        triggerFlash();
-
-
-        setBeanState(
-            "capture",
-            "Got it! 📸"
-        );
-
-
-        photoCount++;
-
-
-        updatePhotoCount();
-
-
-        step.classList.remove(
-            "active"
-        );
-
-
-        step.classList.add(
-            "completed"
-        );
-
-
-        step.querySelector(
-            "div:last-child"
-        ).textContent =
-            "Captured";
-
-
-        showMessage(
-            `Photo ${photoNumber} captured.`,
-            "success"
-        );
-
-
-        await sleep(
-            500
-        );
-
-    }
-
-    catch (error) {
-
-        step.classList.remove(
-            "active"
-        );
-
-
-        showBeanError(
-            "I couldn't take that photo."
-        );
-
-
-        throw error;
-
-    }
-
-}
-
-
-
-// ============================================================
-// COUNTDOWN
-// ============================================================
-
-async function runCountdown() {
-
-    countdownOverlay.classList.add(
-        "visible"
-    );
-
-
-    const numbers = [
-        "3",
-        "2",
-        "1"
-    ];
-
-
-    for (
-        const number of numbers
-    ) {
-
-        countdownNumber.textContent =
-            number;
-
-
-        if (number === "3") {
-
-            beanSpeech.textContent =
-                "Get ready!";
-
-        }
-
-        else if (number === "2") {
-
-            beanSpeech.textContent =
-                "Hold that pose!";
-
-        }
-
-        else {
-
-            beanSpeech.textContent =
-                "Smile!";
-
-        }
-
-
-        countdownNumber.style.animation =
-            "none";
-
-
-        void countdownNumber.offsetWidth;
-
-
-        countdownNumber.style.animation =
-            "countdownPulse 0.8s ease-out";
-
-
-        await sleep(
-            1000
-        );
-
-    }
-
-
-    countdownNumber.textContent =
-        "📸";
-
-
-    beanSpeech.textContent =
-        "Cheese!";
-
-
-    countdownNumber.style.animation =
-        "none";
-
-
-    void countdownNumber.offsetWidth;
-
-
-    countdownNumber.style.animation =
-        "countdownPulse 0.35s ease-out";
-
-
-    await sleep(
-        250
-    );
-
-
-    countdownOverlay.classList.remove(
-        "visible"
-    );
-
-}
-
-
-
-// ============================================================
-// FLASH
-// ============================================================
-
-function triggerFlash() {
-
-    flash.classList.remove(
-        "active"
-    );
-
-
-    void flash.offsetWidth;
-
-
-    flash.classList.add(
-        "active"
-    );
-
-}
-
-
-
-// ============================================================
-// PHOTO COUNT
-// ============================================================
-
-function updatePhotoCount() {
-
-    document.getElementById(
-        "photoCount"
-    ).textContent =
-        `${photoCount} / 3`;
-
-}
-
-
-
-// ============================================================
-// RESET PHOTO STEPS
-// ============================================================
-
-function resetPhotoSteps() {
-
-    for (
-        let i = 1;
-        i <= 3;
-        i++
-    ) {
-
-        const step =
-            document.getElementById(
-                `step${i}`
-            );
-
-
-        step.classList.remove(
-            "active",
-            "completed"
-        );
-
-
-        step.querySelector(
-            "div:last-child"
-        ).textContent =
-            "Ready";
-
-    }
-
-}
-
-
-
-// ============================================================
-// CREATE COLLAGE
-// ============================================================
-
-async function createCollageAutomatically() {
-
-    try {
-
-        const response =
-            await fetch(
-                "/make-collage",
-                {
-                    method: "POST"
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
-
-        }
-
-
-        setStatus(
-            "Collage ready"
-        );
-
-
-        showMessage(
-            "Collage created successfully.",
-            "success"
-        );
-
-
-        setBeanState(
-            "celebrate",
-            "Your collage is ready! ✨"
-        );
-
-
-        collageImage.src =
-            "/collage-image?t=" +
-            Date.now();
-
-
-        collageImage.style.display =
-            "block";
-
-
-        collageOverlay.classList.add(
-            "visible"
-        );
-
-
-        printButton.style.display =
-            "block";
-
-
-        retakeButton.style.display =
-            "block";
-
-
-        menuButton.style.display =
-            "block";
-
-
-        setSessionUI(
-            false
-        );
-
-    }
-
-    catch (error) {
-
-        showBeanError(
-            "I couldn't create the collage."
-        );
-
-
-        throw new Error(
-            "Could not create collage: " +
-            error.message
-        );
-
-    }
-
-}
-
-
-
-// ============================================================
-// HIDE COLLAGE
-// ============================================================
-
-function hideCollage() {
-
-    collageOverlay.classList.remove(
-        "visible"
-    );
-
-
-    collageImage.style.display =
-        "none";
-
-
-    printButton.style.display =
-        "none";
-
-
-    retakeButton.style.display =
-        "block";
-
-
-    menuButton.style.display =
-        "block";
-
-}
-
-
-
-// ============================================================
-// RETAKE
-// ============================================================
-
-async function retakeSession() {
-
-    if (automationRunning) {
-        return;
-    }
-
-
-    if (!cameraConnected) {
-
-        hideCollage();
-
-
-        setSessionUI(
-            false
-        );
-
-
-        showMessage(
-            "Camera is not connected.",
-            "error"
-        );
-
-
-        showBeanError(
-            "We need to reconnect the camera first."
-        );
-
-
-        return;
-
-    }
-
-
-    hideCollage();
-
-
-    photoCount = 0;
-
-    sessionActive = false;
-
-
-    resetPhotoSteps();
-
-    updatePhotoCount();
-
-
-    setBeanState(
-        "ready",
-        "Let's try that again!"
-    );
-
-
-    await sleep(
-        400
-    );
-
-
-    startSession();
-
-}
-
-
-
-// ============================================================
-// RETURN TO MENU
-// ============================================================
-
-function returnToMenu() {
-
-    hideCollage();
-
-
-    sessionActive = false;
-
-    automationRunning = false;
-
-    photoCount = 0;
-
-
-    resetPhotoSteps();
-
-    updatePhotoCount();
-
-
-    setSessionUI(
-        false
-    );
-
-
-    setStatus(
-        cameraConnected
-            ? "Camera connected"
-            : "Camera disconnected"
-    );
-
-
-    showMessage(
-        cameraConnected
-            ? "Ready for another photo session."
-            : "Connect the camera to begin."
-    );
-
-
-    startButton.disabled =
-        !cameraConnected;
-
-
-    resetBean();
-
-}
-
-
-
-// ============================================================
-// PRINT
-// ============================================================
-
-async function printCollage() {
-
-    printButton.disabled =
-        true;
-
-
-    showMessage(
-        "Sending collage to printer..."
-    );
-
-
-    setBeanState(
-        "processing",
-        "Printing your collage..."
-    );
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/print-collage",
-                {
-                    method: "POST"
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!data.success) {
-
-            throw new Error(
-                data.message
-            );
-
-        }
-
-
-        showMessage(
-            "Print job sent successfully.",
-            "success"
-        );
-
-
-        setStatus(
-            "Collage printed"
-        );
-
-
-        setBeanState(
-            "celebrate",
-            "Printed! Thanks for visiting! 🎉"
-        );
-
-    }
-
-    catch (error) {
-
-        showMessage(
-            error.message,
-            "error"
-        );
-
-
-        showBeanError(
-            "I couldn't print the collage."
-        );
-
-    }
-
-    finally {
-
-        printButton.disabled =
-            false;
-
-    }
-
-}
-
-
-
-// ============================================================
-// SLEEP
-// ============================================================
-
-function sleep(
-    milliseconds
-) {
-
-    return new Promise(
-        resolve =>
-            setTimeout(
-                resolve,
-                milliseconds
-            )
-    );
-
-}
-
-
-
-// ============================================================
-// INITIAL STATE
-// ============================================================
-
-setSessionUI(
-    false
-);
-
-
-startButton.disabled =
-    true;
-
-
-setConnectionIndicator(
-    false
-);
-
-
-setStatus(
-    "Camera disconnected"
-);
-
-
-resetBean();
-
-
-</script>
+    <script
+        src="{{ url_for('static', filename='js/main.js') }}"
+    ></script>
 
 
 </body>

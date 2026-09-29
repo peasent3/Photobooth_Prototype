@@ -1,0 +1,139 @@
+PHOTO BEAN — DEDICATED PHOTOBOOTH PC SETUP
+
+Use this checklist when installing the PhotoBean project on a new
+Windows PC. This assumes Python is already installed.
+
+1. COPY THE PHOTOBOOTH PROJECT
+
+Copy the complete PhotoBean project to:
+
+C:<NEW-PC-USER>
+
+Include: - app.py - camera.py - collage.py - printer.py -
+design_config.py - pysonycam
+- templates.html - templates.html - static
+- static
+- static
+
+Also create:
+
+C:
+
+IMPORTANT: The current PhotoBean code uses C:for photos and design
+assets.
+
+2. CREATE A NEW PYTHON VIRTUAL ENVIRONMENT
+
+Do NOT copy the old venv folder.
+
+Open PowerShell:
+
+cd C:<NEW-PC-USER> python -m venv venv ..ps1 python -m pip install
+–upgrade pip
+
+3. INSTALL REQUIRED PYTHON PACKAGES
+
+Run:
+
+pip install Flask Pillow Werkzeug libusb1 qrcode boto3
+
+Packages: - Flask — PhotoBean website/server. - Pillow — collage and
+image processing. - Werkzeug — Flask/file-upload utilities. - libusb1 —
+Sony USB camera communication. - qrcode — planned guest QR download
+system. - boto3 — planned Cloudflare R2 uploads.
+
+You do not need to pip install pysonycam if the customized pysonycam
+folder is included in the PhotoBean project.
+
+4. SONY A7C II USB DRIVER
+
+Install Zadig on the new Windows PC.
+
+Connect the Sony A7C II and use Zadig to install WinUSB for:
+
+Sony ILCE-7CM2 VID: 054C PID: 0E8C
+
+Working USB endpoints: - Bulk IN: 0x81 - Bulk OUT: 0x02 - Interrupt IN:
+0x83
+
+IMPORTANT: Only change the driver for the correct Sony camera device.
+
+5. SONY CAMERA SETTINGS
+
+Configure the Sony A7C II for PC Remote USB operation.
+
+Close Sony Imaging Edge and any other program that could take control of
+the camera. PhotoBean needs exclusive access.
+
+6. CANON SELPHY CP1500
+
+Connect the Canon SELPHY CP1500.
+
+Open: Settings → Bluetooth & devices → Printers & scanners
+
+Confirm the SELPHY appears and print a normal Windows test image before
+testing PhotoBean printing.
+
+7. WINDOWS FONTS
+
+Verify these exist:
+
+C:.ttf C:.ttf
+
+8. COPY EXISTING PHOTO BEAN DESIGNS
+
+If transferring the existing installation, also copy:
+
+C:
+
+This may contain uploaded backgrounds, logos, and saved design
+information.
+
+9. WINDOWS FIREWALL
+
+When Windows asks whether Python/PhotoBean can communicate through
+Windows Firewall, allow it on PRIVATE networks.
+
+Do NOT expose Flask port 5000 directly to the public internet.
+
+10. START PHOTO BEAN
+
+cd C:<NEW-PC-USER> ..exe app.py
+
+Main site: http://localhost:5000
+
+Design Studio: http://localhost:5000/design
+
+11. TEST IN THIS ORDER
+
+1.  PhotoBean website opens.
+2.  Design Studio opens.
+3.  Background upload works.
+4.  Sony A7C II connects.
+5.  Live View works.
+6.  Take a test photo.
+7.  Run a complete 3-photo session.
+8.  Collage is generated.
+9.  Collage preview appears.
+10. Print on the Canon SELPHY CP1500.
+
+12. FUTURE QR / DIGITAL DELIVERY
+
+Planned workflow:
+
+Sony A7C II → PhotoBean PC → 3 Photos → Final Collage → Cloudflare R2 →
+Unique HTTPS Gallery → QR Code → Guest Phone
+
+The guest will be able to scan a QR code and download the collage and
+individual photos over the internet.
+
+Cloudflare credentials should be stored as environment variables. Do NOT
+place Cloudflare secret/API credentials directly inside app.py.
+
+13. QUICK INSTALL COMMANDS
+
+cd C:<NEW-PC-USER> python -m venv venv ..ps1 python -m pip install
+–upgrade pip pip install Flask Pillow Werkzeug libusb1 qrcode boto3
+..exe app.py
+
+PHOTO BEAN Still Motion Archives

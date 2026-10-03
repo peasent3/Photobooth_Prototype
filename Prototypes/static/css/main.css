@@ -1692,4 +1692,453 @@ body.phase-session .bean-speech {
 
         max-width: 300px;
     }
+}/* ============================================================
+   PHOTO BEAN - DIGITAL GALLERY / QR CODE
+============================================================ */
+
+
+/* ------------------------------------------------------------
+   LARGER COLLAGE RESULT WINDOW
+------------------------------------------------------------ */
+
+.collage-preview-container {
+    width: min(94vw, 1250px);
+    max-width: 1250px;
+    max-height: 94vh;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 16px;
+}
+
+
+/* ------------------------------------------------------------
+   COLLAGE + QR LAYOUT
+------------------------------------------------------------ */
+
+.collage-result-layout {
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 28px;
+}
+
+
+/* ------------------------------------------------------------
+   COLLAGE SIDE
+------------------------------------------------------------ */
+
+.collage-result-panel {
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+
+#collageImage {
+    display: none;
+
+    width: auto;
+    height: auto;
+
+    max-width: 100%;
+    max-height: 68vh;
+
+    object-fit: contain;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 25px 80px
+        rgba(0, 0, 0, 0.55);
+}
+
+
+/* ------------------------------------------------------------
+   DIGITAL GALLERY PANEL
+------------------------------------------------------------ */
+
+.digital-gallery-panel {
+    width: 280px;
+
+    flex: 0 0 280px;
+
+    display: none;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    padding: 24px;
+
+    border-radius: 20px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.07
+        );
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.12
+        );
+
+    backdrop-filter:
+        blur(18px);
+
+    box-shadow:
+        0 20px 60px
+        rgba(
+            0,
+            0,
+            0,
+            0.30
+        );
+}
+
+
+.digital-gallery-panel.visible {
+    display: flex;
+}
+
+
+/* ------------------------------------------------------------
+   PHONE ICON
+------------------------------------------------------------ */
+
+.digital-gallery-icon {
+    font-size: 30px;
+
+    margin-bottom: 7px;
+}
+
+
+/* ------------------------------------------------------------
+   DIGITAL GALLERY TITLE
+------------------------------------------------------------ */
+
+.digital-gallery-panel h3,
+.digital-gallery-unavailable h3 {
+    margin:
+        0
+        0
+        8px;
+
+    font-size: 19px;
+
+    font-weight: 700;
+
+    text-align: center;
+}
+
+
+/* ------------------------------------------------------------
+   DESCRIPTION
+------------------------------------------------------------ */
+
+.digital-gallery-description {
+    margin:
+        0
+        0
+        16px;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            0.65
+        );
+
+    font-size: 11px;
+
+    line-height: 1.5;
+
+    text-align: center;
+}
+
+
+/* ------------------------------------------------------------
+   QR CODE WHITE CARD
+------------------------------------------------------------ */
+
+.qr-code-container {
+    width: 210px;
+    height: 210px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px;
+
+    background: white;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 15px 40px
+        rgba(
+            0,
+            0,
+            0,
+            0.35
+        );
+}
+
+
+/* QRCode.js creates either a canvas or image */
+
+.qr-code-container img,
+.qr-code-container canvas {
+    display: block;
+
+    width: 190px !important;
+    height: 190px !important;
+}
+
+
+/* ------------------------------------------------------------
+   READY MESSAGE
+------------------------------------------------------------ */
+
+.gallery-ready-message {
+    margin-top: 13px;
+
+    color: #8ce5a2;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    text-align: center;
+}
+
+
+/* ------------------------------------------------------------
+   OPEN GALLERY BUTTON
+------------------------------------------------------------ */
+
+.gallery-link {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 12px;
+
+    padding:
+        9px
+        14px;
+
+    border-radius: 9px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.08
+        );
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.12
+        );
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    transition:
+        background 0.2s,
+        transform 0.2s;
+}
+
+
+.gallery-link:hover {
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.15
+        );
+
+    transform:
+        translateY(-1px);
+}
+
+
+/* ------------------------------------------------------------
+   DIGITAL GALLERY UNAVAILABLE
+------------------------------------------------------------ */
+
+.digital-gallery-unavailable {
+    width: 280px;
+
+    flex: 0 0 280px;
+
+    display: none;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 25px;
+
+    border-radius: 20px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.05
+        );
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.10
+        );
+
+    text-align: center;
+}
+
+
+.digital-gallery-unavailable.visible {
+    display: flex;
+}
+
+
+.digital-gallery-unavailable p {
+    margin:
+        4px
+        0
+        0;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            0.60
+        );
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+
+/* ------------------------------------------------------------
+   COLLAGE READY TEXT
+------------------------------------------------------------ */
+
+.collage-ready {
+    color: #8ce5a2;
+
+    font-size: 11px;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 900px) {
+
+    .collage-preview-overlay {
+        overflow-y: auto;
+
+        align-items:
+            flex-start;
+    }
+
+
+    .collage-preview-container {
+        width: 100%;
+
+        max-height: none;
+
+        margin:
+            auto
+            0;
+
+        padding:
+            15px
+            0;
+    }
+
+
+    .collage-result-layout {
+        flex-direction: column;
+
+        gap: 18px;
+    }
+
+
+    #collageImage {
+        max-height: 55vh;
+    }
+
+
+    .digital-gallery-panel,
+    .digital-gallery-unavailable {
+        width: min(
+            100%,
+            320px
+        );
+
+        flex-basis: auto;
+    }
+
+
+    .qr-code-container {
+        width: 200px;
+        height: 200px;
+    }
+
+
+    .qr-code-container img,
+    .qr-code-container canvas {
+        width: 180px !important;
+        height: 180px !important;
+    }
+
 }

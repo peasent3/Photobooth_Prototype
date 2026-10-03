@@ -11,14 +11,8 @@
     >
 
     <title>
-        PhotoBean.com
+        Still Motion Archives Photobooth
     </title>
-
-
-    <!-- =====================================================
-         MAIN CSS
-         C:\Users\kinji\Photobooth\static\css\main.css
-    ====================================================== -->
 
     <link
         rel="stylesheet"
@@ -31,558 +25,470 @@
 <body class="phase-idle">
 
 
-    <!-- =====================================================
-         PHASE BACKGROUND
+<!-- =========================================================
+     COLOUR PHASE BACKGROUND
+========================================================= -->
 
-         BLUE   = Idle / Ready
-         YELLOW = Photo Session
-         CORAL  = Complete
-    ====================================================== -->
-
-    <div
-        id="phaseBackground"
-        class="phase-background"
-    ></div>
+<div
+    id="phaseBackground"
+    class="phase-background"
+></div>
 
 
-    <!--
-        This element creates the animated colour wipe
-        when moving between phases.
-    -->
-
-    <div
-        id="phaseTransition"
-        class="phase-transition"
-    ></div>
+<div
+    id="phaseTransition"
+    class="phase-transition"
+></div>
 
 
-    <!--
-        Small phase indicator.
-    -->
+<div
+    id="phaseLabel"
+    class="phase-label"
+>
+    READY
+</div>
 
-    <div
-        id="phaseLabel"
-        class="phase-label"
-    >
-        READY
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header>
+
+    <div class="brand">
+
+        <div class="brand-icon">
+            📷
+        </div>
+
+        <div class="brand-text">
+
+            <h1>
+                Photobooth
+            </h1>
+
+            <p>
+                Still Motion Archives
+            </p>
+
+        </div>
+
     </div>
 
 
+    <a
+        href="/design"
+        class="design-link"
+    >
+        🎨 Design Studio
+    </a>
 
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
-
-    <header>
-
-
-        <!-- BRAND -->
-
-        <div class="brand">
-
-            <div class="brand-icon">
-                📷
-            </div>
-
-
-            <div class="brand-text">
-
-                <h1>
-                    PhotoBean.com
-                </h1>
-
-                <p>
-                    Photo Bean
-                </p>
-
-            </div>
-
-        </div>
+</header>
 
 
 
-        <!-- DESIGN STUDIO -->
+<!-- =========================================================
+     CAMERA AREA
+========================================================= -->
 
-        <a
-            href="/design"
-            class="design-link"
+<div class="booth-area">
+
+    <div class="camera-frame">
+
+        <img
+            id="liveview"
+            src="/liveview"
+            alt="Sony α7C II Live View"
         >
-            🎨 Design Studio
-        </a>
-
-
-    </header>
-
-
-
-    <!-- =====================================================
-         MAIN CAMERA AREA
-    ====================================================== -->
-
-    <main class="booth-area">
-
-
-        <div class="camera-frame">
-
-
-            <!-- =============================================
-                 SONY CAMERA LIVE VIEW
-            ============================================== -->
-
-            <img
-                id="liveview"
-                src="/liveview"
-                alt="Sony α7C II Live View"
-            >
-
-
-
-            <!-- =============================================
-                 CAMERA VISUAL OVERLAY
-            ============================================== -->
-
-            <div
-                class="camera-overlay"
-            ></div>
-
-
-
-            <!-- =============================================
-                 CAMERA LABEL
-            ============================================== -->
-
-            <div
-                class="camera-label"
-            >
-                SONY α7C II • LIVE
-            </div>
-
-
-
-            <!-- =============================================
-                 CAMERA DISCONNECTED SCREEN
-            ============================================== -->
-
-            <div
-                id="noCamera"
-                class="no-camera"
-            >
-
-
-                <div
-                    class="no-camera-icon"
-                >
-                    📷
-                </div>
-
-
-                <div
-                    class="no-camera-text"
-                >
-                    Camera not connected
-                </div>
-
-
-            </div>
-
-
-        </div>
-
-
-    </main>
-
-
-
-    <!-- =====================================================
-         CAMERA CONNECTION STATUS
-    ====================================================== -->
-
-    <div class="camera-status">
 
 
         <div
-            id="statusDot"
-            class="status-dot"
+            class="camera-overlay"
         ></div>
 
 
-        <span id="status">
-            Camera disconnected
-        </span>
+        <div
+            class="camera-label"
+        >
+            SONY α7C II • LIVE
+        </div>
+
+
+        <div
+            id="noCamera"
+            class="no-camera"
+        >
+
+            <div
+                class="no-camera-icon"
+            >
+                📷
+            </div>
+
+            <div
+                class="no-camera-text"
+            >
+                Camera not connected
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     CAMERA STATUS
+========================================================= -->
+
+<div class="camera-status">
+
+    <div
+        id="statusDot"
+        class="status-dot"
+    ></div>
+
+    <span id="status">
+        Camera disconnected
+    </span>
+
+</div>
+
+
+
+<!-- =========================================================
+     CONTROL PANEL
+========================================================= -->
+
+<div class="control-panel">
+
+    <h2 class="control-title">
+        Photo Session
+    </h2>
+
+
+    <p class="control-description">
+        Press Start and the booth will automatically capture
+        three photos and create your collage.
+    </p>
+
+
+    <div class="photo-progress">
+
+
+        <div
+            class="photo-step"
+            id="step1"
+        >
+
+            <div class="photo-step-number">
+                1
+            </div>
+
+            <div>
+                Ready
+            </div>
+
+        </div>
+
+
+        <div
+            class="photo-step"
+            id="step2"
+        >
+
+            <div class="photo-step-number">
+                2
+            </div>
+
+            <div>
+                Ready
+            </div>
+
+        </div>
+
+
+        <div
+            class="photo-step"
+            id="step3"
+        >
+
+            <div class="photo-step-number">
+                3
+            </div>
+
+            <div>
+                Ready
+            </div>
+
+        </div>
 
 
     </div>
 
 
+    <div class="photo-count">
 
-    <!-- =====================================================
-         CONTROL PANEL
-    ====================================================== -->
+        <div
+            class="photo-count-number"
+            id="photoCount"
+        >
+            0 / 3
+        </div>
 
-    <section class="control-panel">
+        <div class="photo-count-label">
+            Photos captured
+        </div>
+
+    </div>
 
 
-        <!-- TITLE -->
+    <button
+        class="start-button"
+        id="startSessionButton"
+        onclick="startSession()"
+        disabled
+    >
+        📸 Start Photo Session
+    </button>
 
-        <h2 class="control-title">
-            Photo Session
+
+    <div class="connection-buttons">
+
+        <button
+            class="small-button"
+            onclick="connectCamera()"
+        >
+            🔌 Connect Camera
+        </button>
+
+
+        <button
+            class="small-button"
+            onclick="disconnectCamera()"
+        >
+            Disconnect
+        </button>
+
+    </div>
+
+
+    <div
+        id="message"
+        class="message"
+    >
+        Connect the camera to begin.
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     PHOTO BEAN
+========================================================= -->
+
+<div
+    id="photoBean"
+    class="photo-bean-host"
+>
+
+    <div
+        id="beanSpeech"
+        class="bean-speech"
+    >
+        Connect the camera and I'll get us ready!
+    </div>
+
+
+    <img
+        id="photoBeanImage"
+        class="photo-bean-image"
+        src="{{ url_for('static', filename='mascot/photo_bean.png') }}"
+        alt="Photo Bean"
+    >
+
+</div>
+
+
+
+<!-- =========================================================
+     COUNTDOWN
+========================================================= -->
+
+<div
+    id="countdownOverlay"
+    class="countdown-overlay"
+>
+
+    <div
+        id="countdownNumber"
+        class="countdown-number"
+    >
+        3
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     FLASH
+========================================================= -->
+
+<div
+    id="flash"
+    class="flash"
+></div>
+
+
+
+<!-- =========================================================
+     COLLAGE PREVIEW + DIGITAL GALLERY
+========================================================= -->
+
+<div
+    id="collagePreviewOverlay"
+    class="collage-preview-overlay"
+>
+
+    <div class="collage-preview-container">
+
+
+        <!-- =================================================
+             TITLE
+        ================================================== -->
+
+        <h2 class="collage-title">
+            Your Photo Booth Collage
         </h2>
 
 
 
-        <!-- DESCRIPTION -->
-
-        <p class="control-description">
-
-            Press Start and the booth will automatically
-            capture three photos and create your collage.
-
-        </p>
-
-
-
         <!-- =================================================
-             PHOTO PROGRESS
+             COLLAGE + QR LAYOUT
         ================================================== -->
 
-        <div class="photo-progress">
+        <div class="collage-result-layout">
 
 
-            <!-- PHOTO 1 -->
+            <!-- =============================================
+                 COLLAGE PREVIEW
+            ============================================== -->
 
-            <div
-                class="photo-step"
-                id="step1"
-            >
+            <div class="collage-result-panel">
 
-                <div class="photo-step-number">
-                    1
-                </div>
-
-                <div>
-                    Ready
-                </div>
-
-            </div>
-
-
-
-            <!-- PHOTO 2 -->
-
-            <div
-                class="photo-step"
-                id="step2"
-            >
-
-                <div class="photo-step-number">
-                    2
-                </div>
-
-                <div>
-                    Ready
-                </div>
-
-            </div>
-
-
-
-            <!-- PHOTO 3 -->
-
-            <div
-                class="photo-step"
-                id="step3"
-            >
-
-                <div class="photo-step-number">
-                    3
-                </div>
-
-                <div>
-                    Ready
-                </div>
-
-            </div>
-
-
-        </div>
-
-
-
-        <!-- =================================================
-             PHOTO COUNTER
-        ================================================== -->
-
-        <div class="photo-count">
-
-
-            <div
-                class="photo-count-number"
-                id="photoCount"
-            >
-                0 / 3
-            </div>
-
-
-            <div class="photo-count-label">
-                Photos captured
-            </div>
-
-
-        </div>
-
-
-
-        <!-- =================================================
-             START SESSION
-        ================================================== -->
-
-        <button
-            type="button"
-            class="start-button"
-            id="startSessionButton"
-            onclick="startSession()"
-            disabled
-        >
-
-            📸 Start Photo Session
-
-        </button>
-
-
-
-        <!-- =================================================
-             CAMERA CONNECTION BUTTONS
-        ================================================== -->
-
-        <div class="connection-buttons">
-
-
-            <button
-                type="button"
-                class="small-button"
-                onclick="connectCamera()"
-            >
-
-                🔌 Connect Camera
-
-            </button>
-
-
-
-            <button
-                type="button"
-                class="small-button"
-                onclick="disconnectCamera()"
-            >
-
-                Disconnect
-
-            </button>
-
-
-        </div>
-
-
-
-        <!-- =================================================
-             STATUS / ERROR MESSAGE
-        ================================================== -->
-
-        <div
-            id="message"
-            class="message"
-        >
-
-            Connect the camera to begin.
-
-        </div>
-
-
-    </section>
-
-
-
-    <!-- =====================================================
-         PHOTO BEAN
-
-         Image location:
-
-         static\
-             mascot\
-                 photo_bean.png
-    ====================================================== -->
-
-    <div
-        id="photoBean"
-        class="photo-bean-host"
-    >
-
-
-        <!-- SPEECH BUBBLE -->
-
-        <div
-            id="beanSpeech"
-            class="bean-speech"
-        >
-
-            Connect the camera and I'll get us ready!
-
-        </div>
-
-
-
-        <!-- PHOTO BEAN IMAGE -->
-
-        <img
-            id="photoBeanImage"
-            class="photo-bean-image"
-            src="{{ url_for('static', filename='mascot/photo_bean.png') }}"
-            alt="Photo Bean"
-        >
-
-
-    </div>
-
-
-
-    <!-- =====================================================
-         COUNTDOWN
-
-         Displays:
-
-         3
-         2
-         1
-         📸
-    ====================================================== -->
-
-    <div
-        id="countdownOverlay"
-        class="countdown-overlay"
-    >
-
-
-        <div
-            id="countdownNumber"
-            class="countdown-number"
-        >
-
-            3
-
-        </div>
-
-
-    </div>
-
-
-
-    <!-- =====================================================
-         CAMERA FLASH EFFECT
-    ====================================================== -->
-
-    <div
-        id="flash"
-        class="flash"
-    ></div>
-
-
-
-    <!-- =====================================================
-         COLLAGE PREVIEW
-    ====================================================== -->
-
-    <div
-        id="collagePreviewOverlay"
-        class="collage-preview-overlay"
-    >
-
-
-        <div class="collage-preview-container">
-
-
-            <!-- TITLE -->
-
-            <h2 class="collage-title">
-
-                Your Photo Booth Collage
-
-            </h2>
-
-
-
-            <!-- COLLAGE IMAGE -->
-
-            <img
-                id="collageImage"
-                src=""
-                alt="Finished Photobooth Collage"
-            >
-
-
-
-            <!-- READY MESSAGE -->
-
-            <div
-                id="collageReady"
-                class="collage-ready"
-            >
-
-                Collage ready
+                <img
+                    id="collageImage"
+                    src=""
+                    alt="Finished Photobooth Collage"
+                >
 
             </div>
 
 
 
             <!-- =============================================
-                 COLLAGE BUTTONS
+                 DIGITAL GALLERY
             ============================================== -->
 
-            <div class="preview-buttons">
+            <div
+                id="digitalGalleryPanel"
+                class="digital-gallery-panel"
+            >
+
+                <div class="digital-gallery-icon">
+                    📱
+                </div>
 
 
-                <!-- RETAKE -->
+                <h3>
+                    Get Your Photos
+                </h3>
 
-                <button
-                    type="button"
-                    id="retakeButton"
-                    class="preview-button retake-button"
-                    onclick="retakeSession()"
+
+                <p class="digital-gallery-description">
+                    Scan the QR code with your phone
+                    to download your collage and
+                    original photos.
+                </p>
+
+
+
+                <!-- =========================================
+                     QR CODE
+                ========================================== -->
+
+                <div
+                    id="qrCodeContainer"
+                    class="qr-code-container"
+                ></div>
+
+
+
+                <!-- =========================================
+                     GALLERY READY MESSAGE
+                ========================================== -->
+
+                <div
+                    id="galleryReadyMessage"
+                    class="gallery-ready-message"
                 >
-
-                    🔄 Retake Session
-
-                </button>
+                    ✓ Digital gallery ready
+                </div>
 
 
 
-                <!-- PRINT -->
+                <!-- =========================================
+                     OPEN GALLERY
+                ========================================== -->
 
-                <button
-                    type="button"
-                    id="printButton"
-                    class="preview-button print-button"
-                    onclick="printCollage()"
+                <a
+                    id="galleryLink"
+                    class="gallery-link"
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
                 >
+                    📱 Open Digital Gallery
+                </a>
 
-                    🖨️ Print Collage
-
-                </button>
+            </div>
 
 
 
-                <!-- RETURN -->
+            <!-- =============================================
+                 DIGITAL GALLERY UNAVAILABLE
+            ============================================== -->
 
-                <button
-                    type="button"
-                    id="menuButton"
-                    class="preview-button menu-button"
-                    onclick="returnToMenu()"
-                >
+            <div
+                id="digitalGalleryUnavailable"
+                class="digital-gallery-unavailable"
+            >
 
-                    🏠 Return to Menu
+                <div class="digital-gallery-icon">
+                    📷
+                </div>
 
-                </button>
 
+                <h3>
+                    Your Collage Is Ready
+                </h3>
+
+
+                <p>
+                    Digital downloads are temporarily
+                    unavailable.
+                </p>
+
+
+                <p>
+                    You can still print your collage
+                    normally.
+                </p>
 
             </div>
 
@@ -590,21 +496,80 @@
         </div>
 
 
+
+        <!-- =================================================
+             COLLAGE READY
+        ================================================== -->
+
+        <div
+            id="collageReady"
+            class="collage-ready"
+        >
+            ✓ Collage ready
+        </div>
+
+
+
+        <!-- =================================================
+             RESULT BUTTONS
+        ================================================== -->
+
+        <div class="preview-buttons">
+
+
+            <button
+                id="retakeButton"
+                class="preview-button retake-button"
+                onclick="retakeSession()"
+            >
+                🔄 Retake Session
+            </button>
+
+
+            <button
+                id="printButton"
+                class="preview-button print-button"
+                onclick="printCollage()"
+            >
+                🖨️ Print Collage
+            </button>
+
+
+            <button
+                id="menuButton"
+                class="preview-button menu-button"
+                onclick="returnToMenu()"
+            >
+                🏠 Return to Menu
+            </button>
+
+
+        </div>
+
+
     </div>
 
+</div>
 
 
-    <!-- =====================================================
-         MAIN JAVASCRIPT
 
-         C:\Users\kinji\Photobooth\static\js\main.js
+<!-- =========================================================
+     QR CODE LIBRARY
+========================================================= -->
 
-         Keep this at the bottom of the page.
-    ====================================================== -->
+<script
+    src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"
+></script>
 
-    <script
-        src="{{ url_for('static', filename='js/main.js') }}"
-    ></script>
+
+
+<!-- =========================================================
+     MAIN PHOTO BEAN JAVASCRIPT
+========================================================= -->
+
+<script
+    src="{{ url_for('static', filename='js/main.js') }}"
+></script>
 
 
 </body>

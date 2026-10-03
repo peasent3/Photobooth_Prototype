@@ -1,63 +1,80 @@
-/* =========================================================
-   STILL MOTION ARCHIVES PHOTOBOOTH
-   MAIN JAVASCRIPT
-
-   File:
-   static/js/main.js
-========================================================= */
+/* ============================================================
+   PHOTO BEAN
+   MAIN PHOTOBOOTH JAVASCRIPT
+============================================================ */
 
 
-/* =========================================================
-   GLOBAL STATE
-========================================================= */
+/* ============================================================
+   STATE
+============================================================ */
 
 let sessionActive = false;
+
 let photoCount = 0;
+
 let cameraConnected = false;
+
 let automationRunning = false;
+
 let currentBoothPhase = "idle";
 
+let currentGalleryUrl = null;
 
-/* =========================================================
+
+/* ============================================================
    SHORTCUT
-========================================================= */
+============================================================ */
 
-const $ = (id) =>
+const $ = id =>
     document.getElementById(id);
 
 
-/* =========================================================
+/* ============================================================
    ELEMENT REFERENCES
-========================================================= */
+============================================================ */
 
 let statusElement;
+
 let statusDot;
+
 let messageElement;
+
 let startButton;
 
 let countdownOverlay;
+
 let countdownNumber;
 
 let flash;
 
 let collageOverlay;
+
 let collageImage;
 
 let printButton;
+
 let retakeButton;
+
 let menuButton;
 
 let photoBean;
+
 let beanSpeech;
 
+let digitalGalleryPanel;
 
-/* =========================================================
-   PHASE SYSTEM
+let digitalGalleryUnavailable;
 
-   idle     = BLUE
-   session  = YELLOW
-   complete = CORAL
-========================================================= */
+let qrCodeContainer;
+
+let galleryLink;
+
+let galleryReadyMessage;
+
+
+/* ============================================================
+   BOOTH PHASE
+============================================================ */
 
 function setBoothPhase(
     phase,
@@ -65,9 +82,11 @@ function setBoothPhase(
 ) {
 
     if (
-        phase !== "idle" &&
-        phase !== "session" &&
-        phase !== "complete"
+        ![
+            "idle",
+            "session",
+            "complete"
+        ].includes(phase)
     ) {
         return;
     }
@@ -81,7 +100,7 @@ function setBoothPhase(
         $("phaseLabel");
 
 
-    const applyPhase = () => {
+    const apply = () => {
 
         document.body.classList.remove(
             "phase-idle",
@@ -108,7 +127,9 @@ function setBoothPhase(
 
             }
 
-            else if (phase === "session") {
+            else if (
+                phase === "session"
+            ) {
 
                 label.textContent =
                     "PHOTO SESSION";
@@ -121,18 +142,21 @@ function setBoothPhase(
                     "COMPLETE";
 
             }
+
         }
+
     };
 
 
     if (
-        !animate ||
-        !transition
+        !animate
+        || !transition
     ) {
 
-        applyPhase();
+        apply();
 
         return;
+
     }
 
 
@@ -149,7 +173,7 @@ function setBoothPhase(
 
 
     setTimeout(
-        applyPhase,
+        apply,
         400
     );
 
@@ -163,12 +187,13 @@ function setBoothPhase(
         },
         900
     );
+
 }
 
 
-/* =========================================================
+/* ============================================================
    PHOTO BEAN STATE
-========================================================= */
+============================================================ */
 
 function setBeanState(
     state,
@@ -180,19 +205,8 @@ function setBeanState(
     }
 
 
-    /*
-        Remove animation states without removing
-        movement classes such as bean-hidden.
-    */
-
-    photoBean.classList.remove(
-        "ready",
-        "countdown",
-        "capture",
-        "processing",
-        "celebrate",
-        "error"
-    );
+    photoBean.className =
+        "photo-bean-host";
 
 
     if (state) {
@@ -200,785 +214,67 @@ function setBeanState(
         photoBean.classList.add(
             state
         );
+
     }
 
 
     if (
-        message &&
-        beanSpeech
+        message
+        && beanSpeech
     ) {
 
         beanSpeech.textContent =
             message;
+
     }
+
 }
 
 
-/* =========================================================
+/* ============================================================
    RESET PHOTO BEAN
-========================================================= */
+============================================================ */
 
 function resetBean() {
 
-    if (cameraConnected) {
+    setBeanState(
 
-        setBeanState(
-            "ready",
-            "Ready when you are! Press Start Photo Session."
-        );
+        cameraConnected
+            ? "ready"
+            : "",
 
-    }
+        cameraConnected
+            ? "Ready when you are! Press Start Photo Session."
+            : "Connect the camera and I'll get us ready!"
 
-    else {
+    );
 
-        setBeanState(
-            "",
-            "Connect the camera and I'll get us ready!"
-        );
-    }
 }
 
 
-/* =========================================================
+/* ============================================================
    PHOTO BEAN ERROR
-========================================================= */
+============================================================ */
 
 function showBeanError(
     message
 ) {
 
     setBeanState(
+
         "error",
-        message ||
-        "Something went wrong."
+
+        message
+        || "Something went wrong."
+
     );
+
 }
 
 
-/* =========================================================
-   SHOW PHOTO BEAN
-========================================================= */
-
-function showBean() {
-
-    if (!photoBean) {
-        return;
-    }
-
-
-    photoBean.classList.remove(
-        "bean-hidden"
-    );
-
-
-    photoBean.classList.add(
-        "bean-visible"
-    );
-}
-
-
-/* =========================================================
-   HIDE PHOTO BEAN
-========================================================= */
-
-function hideBean() {
-
-    if (!photoBean) {
-        return;
-    }
-
-
-    photoBean.classList.remove(
-        "bean-visible"
-    );
-
-
-    photoBean.classList.add(
-        "bean-hidden"
-    );
-}
-
-
-/* =========================================================
-   MOVE PHOTO BEAN DURING SESSION
-
-   IMPORTANT:
-
-   Bean is never intentionally placed over .camera-frame.
-
-   We measure:
-   - the real live-view position
-   - Bean's real dimensions
-   - the browser dimensions
-
-   Every possible position is checked for collision with
-   the live-view rectangle.
-
-   If no safe position exists, Bean hides.
-========================================================= */
-
-function moveBeanDuringSession(
-    preferredPosition
-) {
-
-    if (!photoBean) {
-        return;
-    }
-
-
-    const camera =
-        document.querySelector(
-            ".camera-frame"
-        );
-
-
-    if (!camera) {
-
-        hideBean();
-
-        return;
-    }
-
-
-    const cameraRect =
-        camera.getBoundingClientRect();
-
-
-    /*
-        During phase-session, the speech bubble is
-        display:none.
-
-        Therefore this rectangle represents the mascot
-        itself instead of mascot + speech bubble.
-    */
-
-    const beanRect =
-        photoBean.getBoundingClientRect();
-
-
-    const beanWidth =
-        beanRect.width || 120;
-
-
-    const beanHeight =
-        beanRect.height || 140;
-
-
-    /*
-        Bean must stay this far away from the live view.
-    */
-
-    const cameraGap =
-        22;
-
-
-    /*
-        Bean must stay this far away from browser edges.
-    */
-
-    const screenPadding =
-        10;
-
-
-    const screenWidth =
-        window.innerWidth;
-
-
-    const screenHeight =
-        window.innerHeight;
-
-
-    /* =====================================================
-       POSSIBLE POSITIONS
-    ====================================================== */
-
-    const positions = {
-
-
-        /* LEFT TOP */
-
-        "left-top": {
-
-            x:
-                cameraRect.left
-                -
-                beanWidth
-                -
-                cameraGap,
-
-            y:
-                cameraRect.top
-                +
-                25
-        },
-
-
-        /* LEFT MIDDLE */
-
-        "left-middle": {
-
-            x:
-                cameraRect.left
-                -
-                beanWidth
-                -
-                cameraGap,
-
-            y:
-                cameraRect.top
-                +
-                (
-                    cameraRect.height
-                    -
-                    beanHeight
-                )
-                / 2
-        },
-
-
-        /* LEFT BOTTOM */
-
-        "left-bottom": {
-
-            x:
-                cameraRect.left
-                -
-                beanWidth
-                -
-                cameraGap,
-
-            y:
-                cameraRect.bottom
-                -
-                beanHeight
-                -
-                25
-        },
-
-
-        /* RIGHT TOP */
-
-        "right-top": {
-
-            x:
-                cameraRect.right
-                +
-                cameraGap,
-
-            y:
-                cameraRect.top
-                +
-                25
-        },
-
-
-        /* RIGHT MIDDLE */
-
-        "right-middle": {
-
-            x:
-                cameraRect.right
-                +
-                cameraGap,
-
-            y:
-                cameraRect.top
-                +
-                (
-                    cameraRect.height
-                    -
-                    beanHeight
-                )
-                / 2
-        },
-
-
-        /* RIGHT BOTTOM */
-
-        "right-bottom": {
-
-            x:
-                cameraRect.right
-                +
-                cameraGap,
-
-            y:
-                cameraRect.bottom
-                -
-                beanHeight
-                -
-                25
-        },
-
-
-        /* ABOVE LEFT */
-
-        "top-left": {
-
-            x:
-                cameraRect.left
-                +
-                25,
-
-            y:
-                cameraRect.top
-                -
-                beanHeight
-                -
-                cameraGap
-        },
-
-
-        /* ABOVE RIGHT */
-
-        "top-right": {
-
-            x:
-                cameraRect.right
-                -
-                beanWidth
-                -
-                25,
-
-            y:
-                cameraRect.top
-                -
-                beanHeight
-                -
-                cameraGap
-        },
-
-
-        /* BELOW LEFT */
-
-        "bottom-left": {
-
-            x:
-                cameraRect.left
-                +
-                25,
-
-            y:
-                cameraRect.bottom
-                +
-                cameraGap
-        },
-
-
-        /* BELOW RIGHT */
-
-        "bottom-right": {
-
-            x:
-                cameraRect.right
-                -
-                beanWidth
-                -
-                25,
-
-            y:
-                cameraRect.bottom
-                +
-                cameraGap
-        }
-    };
-
-
-    /* =====================================================
-       CHECK WHETHER A POSITION IS SAFE
-    ====================================================== */
-
-    function positionFits(
-        candidate
-    ) {
-
-        if (!candidate) {
-            return false;
-        }
-
-
-        const left =
-            candidate.x;
-
-
-        const right =
-            candidate.x
-            +
-            beanWidth;
-
-
-        const top =
-            candidate.y;
-
-
-        const bottom =
-            candidate.y
-            +
-            beanHeight;
-
-
-        /*
-            FIRST CHECK:
-            Bean must fit inside the browser.
-        */
-
-        const insideScreen =
-            left >= screenPadding &&
-            right <=
-                screenWidth
-                -
-                screenPadding &&
-            top >= screenPadding &&
-            bottom <=
-                screenHeight
-                -
-                screenPadding;
-
-
-        if (!insideScreen) {
-
-            return false;
-        }
-
-
-        /*
-            SECOND CHECK:
-            Bean's rectangle must NOT intersect
-            the live-view rectangle.
-        */
-
-        const overlapsCamera =
-            left <
-                cameraRect.right &&
-            right >
-                cameraRect.left &&
-            top <
-                cameraRect.bottom &&
-            bottom >
-                cameraRect.top;
-
-
-        if (overlapsCamera) {
-
-            return false;
-        }
-
-
-        /*
-            THIRD CHECK:
-            Maintain a little extra safety space around
-            the camera instead of merely touching it.
-        */
-
-        const expandedCamera = {
-
-            left:
-                cameraRect.left
-                -
-                8,
-
-            right:
-                cameraRect.right
-                +
-                8,
-
-            top:
-                cameraRect.top
-                -
-                8,
-
-            bottom:
-                cameraRect.bottom
-                +
-                8
-        };
-
-
-        const overlapsSafetyArea =
-            left <
-                expandedCamera.right &&
-            right >
-                expandedCamera.left &&
-            top <
-                expandedCamera.bottom &&
-            bottom >
-                expandedCamera.top;
-
-
-        return !overlapsSafetyArea;
-    }
-
-
-    /* =====================================================
-       TRY REQUESTED POSITION
-    ====================================================== */
-
-    let selected =
-        positions[
-            preferredPosition
-        ];
-
-
-    /*
-        If requested position doesn't fit, search
-        for another safe location.
-    */
-
-    if (
-        !positionFits(
-            selected
-        )
-    ) {
-
-        const fallbackOrder = [
-
-            "left-top",
-            "right-top",
-
-            "left-middle",
-            "right-middle",
-
-            "left-bottom",
-            "right-bottom",
-
-            "top-left",
-            "top-right",
-
-            "bottom-left",
-            "bottom-right"
-        ];
-
-
-        selected =
-            null;
-
-
-        for (
-            const positionName
-            of fallbackOrder
-        ) {
-
-            const candidate =
-                positions[
-                    positionName
-                ];
-
-
-            if (
-                positionFits(
-                    candidate
-                )
-            ) {
-
-                selected =
-                    candidate;
-
-                break;
-            }
-        }
-    }
-
-
-    /* =====================================================
-       NO SAFE LOCATION
-
-       Do not put Bean over the live view.
-       Hide him instead.
-    ====================================================== */
-
-    if (!selected) {
-
-        hideBean();
-
-        return;
-    }
-
-
-    /* =====================================================
-       MOVE BEAN
-    ====================================================== */
-
-    photoBean.style.setProperty(
-        "--bean-x",
-        `${selected.x}px`
-    );
-
-
-    photoBean.style.setProperty(
-        "--bean-y",
-        `${selected.y}px`
-    );
-
-
-    showBean();
-}
-
-
-/* =========================================================
-   IDLE POSITION
-
-   Outside the camera whenever enough room exists.
-========================================================= */
-
-function moveBeanToIdlePosition() {
-
-    if (!photoBean) {
-        return;
-    }
-
-
-    const camera =
-        document.querySelector(
-            ".camera-frame"
-        );
-
-
-    if (!camera) {
-
-        photoBean.style.setProperty(
-            "--bean-x",
-            "25px"
-        );
-
-
-        photoBean.style.setProperty(
-            "--bean-y",
-            "120px"
-        );
-
-
-        showBean();
-
-        return;
-    }
-
-
-    const cameraRect =
-        camera.getBoundingClientRect();
-
-
-    const beanRect =
-        photoBean.getBoundingClientRect();
-
-
-    const beanWidth =
-        beanRect.width || 285;
-
-
-    const beanHeight =
-        beanRect.height || 140;
-
-
-    const gap =
-        20;
-
-
-    /*
-        First try the left side.
-    */
-
-    let x =
-        cameraRect.left
-        -
-        beanWidth
-        -
-        gap;
-
-
-    let y =
-        cameraRect.top
-        +
-        25;
-
-
-    /*
-        If there isn't enough room on the left,
-        try the right.
-    */
-
-    if (x < 10) {
-
-        x =
-            cameraRect.right
-            +
-            gap;
-    }
-
-
-    /*
-        If there also isn't enough room on the right,
-        place Bean in the upper-left UI margin.
-
-        This is for idle mode only. During the actual
-        photo session, the stricter collision system
-        above is used.
-    */
-
-    if (
-        x + beanWidth >
-        window.innerWidth - 10
-    ) {
-
-        x =
-            20;
-
-
-        y =
-            90;
-    }
-
-
-    /*
-        Keep inside browser.
-    */
-
-    x =
-        Math.max(
-            10,
-            Math.min(
-                x,
-                window.innerWidth
-                -
-                beanWidth
-                -
-                10
-            )
-        );
-
-
-    y =
-        Math.max(
-            80,
-            Math.min(
-                y,
-                window.innerHeight
-                -
-                beanHeight
-                -
-                10
-            )
-        );
-
-
-    photoBean.style.setProperty(
-        "--bean-x",
-        `${x}px`
-    );
-
-
-    photoBean.style.setProperty(
-        "--bean-y",
-        `${y}px`
-    );
-
-
-    showBean();
-}
-
-
-/* =========================================================
+/* ============================================================
    STATUS
-========================================================= */
+============================================================ */
 
 function setStatus(
     message
@@ -988,33 +284,35 @@ function setStatus(
 
         statusElement.textContent =
             message;
+
     }
+
 }
 
 
-/* =========================================================
+/* ============================================================
    CONNECTION INDICATOR
-========================================================= */
+============================================================ */
 
 function setConnectionIndicator(
     connected
 ) {
 
-    if (!statusDot) {
-        return;
+    if (statusDot) {
+
+        statusDot.classList.toggle(
+            "connected",
+            connected
+        );
+
     }
 
-
-    statusDot.classList.toggle(
-        "connected",
-        connected
-    );
 }
 
 
-/* =========================================================
+/* ============================================================
    MESSAGE
-========================================================= */
+============================================================ */
 
 function showMessage(
     message,
@@ -1032,12 +330,13 @@ function showMessage(
 
     messageElement.className =
         "message " + type;
+
 }
 
 
-/* =========================================================
+/* ============================================================
    SESSION UI
-========================================================= */
+============================================================ */
 
 function setSessionUI(
     active
@@ -1047,40 +346,31 @@ function setSessionUI(
         "booth-session-active",
         active
     );
+
 }
 
 
-/* =========================================================
+/* ============================================================
    SLEEP
-========================================================= */
+============================================================ */
 
-function sleep(
-    milliseconds
-) {
-
-    return new Promise(
+const sleep = milliseconds =>
+    new Promise(
         resolve =>
             setTimeout(
                 resolve,
                 milliseconds
             )
     );
-}
 
 
-/* =========================================================
+/* ============================================================
    CONNECT CAMERA
-========================================================= */
+============================================================ */
 
 async function connectCamera() {
 
     if (cameraConnected) {
-
-        showMessage(
-            "Camera is already connected.",
-            "success"
-        );
-
         return;
     }
 
@@ -1101,9 +391,6 @@ async function connectCamera() {
     );
 
 
-    showBean();
-
-
     try {
 
         const response =
@@ -1120,14 +407,15 @@ async function connectCamera() {
 
 
         if (
-            !response.ok ||
-            !data.success
+            !response.ok
+            || !data.success
         ) {
 
             throw new Error(
-                data.message ||
-                "Camera connection failed."
+                data.message
+                || "Camera connection failed."
             );
+
         }
 
 
@@ -1145,22 +433,16 @@ async function connectCamera() {
         );
 
 
-        const noCamera =
-            $("noCamera");
+        if ($("noCamera")) {
 
-
-        if (noCamera) {
-
-            noCamera.style.display =
+            $("noCamera").style.display =
                 "none";
+
         }
 
 
-        if (startButton) {
-
-            startButton.disabled =
-                false;
-        }
+        startButton.disabled =
+            false;
 
 
         showMessage(
@@ -1175,13 +457,11 @@ async function connectCamera() {
         );
 
 
-        moveBeanToIdlePosition();
-
-
         setTimeout(
             resetBean,
             1500
         );
+
     }
 
     catch (error) {
@@ -1200,11 +480,8 @@ async function connectCamera() {
         );
 
 
-        if (startButton) {
-
-            startButton.disabled =
-                true;
-        }
+        startButton.disabled =
+            true;
 
 
         showMessage(
@@ -1216,13 +493,15 @@ async function connectCamera() {
         showBeanError(
             "I couldn't connect to the camera."
         );
+
     }
+
 }
 
 
-/* =========================================================
+/* ============================================================
    DISCONNECT CAMERA
-========================================================= */
+============================================================ */
 
 async function disconnectCamera() {
 
@@ -1234,6 +513,7 @@ async function disconnectCamera() {
         );
 
         return;
+
     }
 
 
@@ -1253,14 +533,15 @@ async function disconnectCamera() {
 
 
         if (
-            !response.ok ||
-            data.success === false
+            !response.ok
+            || data.success === false
         ) {
 
             throw new Error(
-                data.message ||
-                "Could not disconnect camera."
+                data.message
+                || "Could not disconnect camera."
             );
+
         }
 
 
@@ -1282,22 +563,16 @@ async function disconnectCamera() {
         );
 
 
-        const noCamera =
-            $("noCamera");
+        if ($("noCamera")) {
 
-
-        if (noCamera) {
-
-            noCamera.style.display =
+            $("noCamera").style.display =
                 "flex";
+
         }
 
 
-        if (startButton) {
-
-            startButton.disabled =
-                true;
-        }
+        startButton.disabled =
+            true;
 
 
         showMessage(
@@ -1310,13 +585,6 @@ async function disconnectCamera() {
             "Camera disconnected. I'll wait here!"
         );
 
-
-        setBoothPhase(
-            "idle"
-        );
-
-
-        moveBeanToIdlePosition();
     }
 
     catch (error) {
@@ -1330,13 +598,15 @@ async function disconnectCamera() {
         showBeanError(
             error.message
         );
+
     }
+
 }
 
 
-/* =========================================================
-   START SESSION
-========================================================= */
+/* ============================================================
+   START PHOTO SESSION
+============================================================ */
 
 async function startSession() {
 
@@ -1354,6 +624,7 @@ async function startSession() {
 
 
         return;
+
     }
 
 
@@ -1374,9 +645,12 @@ async function startSession() {
         0;
 
 
-    /*
-        BLUE -> YELLOW
-    */
+    currentGalleryUrl =
+        null;
+
+
+    clearDigitalGallery();
+
 
     setBoothPhase(
         "session"
@@ -1388,11 +662,8 @@ async function startSession() {
     );
 
 
-    if (startButton) {
-
-        startButton.disabled =
-            true;
-    }
+    startButton.disabled =
+        true;
 
 
     resetPhotoSteps();
@@ -1400,15 +671,6 @@ async function startSession() {
     updatePhotoCount();
 
     hideCollage();
-
-
-    /*
-        Hide Bean while the camera frame expands.
-
-        We wait before measuring the new camera position.
-    */
-
-    hideBean();
 
 
     try {
@@ -1427,14 +689,15 @@ async function startSession() {
 
 
         if (
-            !response.ok ||
-            !data.success
+            !response.ok
+            || !data.success
         ) {
 
             throw new Error(
-                data.message ||
-                "Could not start photo session."
+                data.message
+                || "Could not start session."
             );
+
         }
 
 
@@ -1454,46 +717,46 @@ async function startSession() {
         );
 
 
-        /*
-            Camera expansion transition is 0.5 seconds.
-
-            1.2 seconds gives it plenty of time to finish
-            before Bean's safe position is calculated.
-        */
-
         await sleep(
             1200
         );
 
 
-        /* =================================================
-           THREE AUTOMATIC PHOTOS
-        ================================================== */
-
         for (
-            let photoNumber = 1;
-            photoNumber <= 3;
-            photoNumber++
+            let number = 1;
+            number <= 3;
+            number++
         ) {
 
             await captureAutomaticPhoto(
-                photoNumber
+                number
             );
 
 
-            if (
-                photoNumber < 3
-            ) {
+            if (number < 3) {
 
                 showMessage(
                     "Get ready for the next photo..."
                 );
 
 
-                await sleep(
-                    900
+                setBeanState(
+
+                    "ready",
+
+                    number === 1
+                        ? "Nice! Try another pose!"
+                        : "Great! One last photo!"
+
                 );
+
+
+                await sleep(
+                    1500
+                );
+
             }
+
         }
 
 
@@ -1511,16 +774,6 @@ async function startSession() {
         );
 
 
-        /*
-            Try bringing Bean back in a safe position
-            while the collage is processing.
-        */
-
-        moveBeanDuringSession(
-            "right-top"
-        );
-
-
         setBeanState(
             "processing",
             "Great shots! I'm making your collage..."
@@ -1528,14 +781,12 @@ async function startSession() {
 
 
         await sleep(
-            900
+            800
         );
 
 
-        hideBean();
-
-
         await createCollageAutomatically();
+
     }
 
     catch (error) {
@@ -1554,9 +805,6 @@ async function startSession() {
         );
 
 
-        moveBeanToIdlePosition();
-
-
         showMessage(
             error.message,
             "error"
@@ -1571,6 +819,7 @@ async function startSession() {
         showBeanError(
             "Something went wrong during the photo session."
         );
+
     }
 
     finally {
@@ -1579,71 +828,28 @@ async function startSession() {
             false;
 
 
-        if (
-            cameraConnected &&
-            startButton
-        ) {
+        if (cameraConnected) {
 
             startButton.disabled =
                 false;
+
         }
+
     }
+
 }
 
 
-/* =========================================================
-   CAPTURE ONE PHOTO
-========================================================= */
+/* ============================================================
+   CAPTURE AUTOMATIC PHOTO
+============================================================ */
 
 async function captureAutomaticPhoto(
-    photoNumber
+    number
 ) {
 
     const step =
-        $(`step${photoNumber}`);
-
-
-    /* =====================================================
-       DIFFERENT PREFERRED LOCATION FOR EACH PHOTO
-
-       These are only preferences.
-
-       moveBeanDuringSession() will automatically reject
-       any position that overlaps the live view.
-    ====================================================== */
-
-    if (
-        photoNumber === 1
-    ) {
-
-        moveBeanDuringSession(
-            "left-top"
-        );
-    }
-
-
-    else if (
-        photoNumber === 2
-    ) {
-
-        moveBeanDuringSession(
-            "right-middle"
-        );
-    }
-
-
-    else {
-
-        moveBeanDuringSession(
-            "left-bottom"
-        );
-    }
-
-
-    setBeanState(
-        "countdown",
-        `Photo ${photoNumber} - get ready!`
-    );
+        $(`step${number}`);
 
 
     if (step) {
@@ -1653,53 +859,26 @@ async function captureAutomaticPhoto(
         );
 
 
-        const label =
-            step.querySelector(
-                "div:last-child"
-            );
+        step.querySelector(
+            "div:last-child"
+        ).textContent =
+            "Get ready";
 
-
-        if (label) {
-
-            label.textContent =
-                "Get ready";
-        }
     }
 
 
     setStatus(
-        `Preparing photo ${photoNumber}...`
+        `Preparing photo ${number}...`
     );
 
 
-    /*
-        Give Bean time to slide into position.
-    */
-
-    await sleep(
-        500
+    setBeanState(
+        "countdown",
+        `Photo ${number} - get ready!`
     );
-
-
-    /*
-        If a safe location was found, showBean() has
-        already been called.
-
-        If no safe location was found, Bean remains hidden.
-    */
 
 
     await runCountdown();
-
-
-    showMessage(
-        `Taking photo ${photoNumber}...`
-    );
-
-
-    setStatus(
-        `Capturing photo ${photoNumber}...`
-    );
 
 
     try {
@@ -1718,14 +897,15 @@ async function captureAutomaticPhoto(
 
 
         if (
-            !response.ok ||
-            !data.success
+            !response.ok
+            || !data.success
         ) {
 
             throw new Error(
-                data.message ||
-                `Could not capture photo ${photoNumber}.`
+                data.message
+                || "Capture failed."
             );
+
         }
 
 
@@ -1756,45 +936,18 @@ async function captureAutomaticPhoto(
             );
 
 
-            const label =
-                step.querySelector(
-                    "div:last-child"
-                );
+            step.querySelector(
+                "div:last-child"
+            ).textContent =
+                "Captured";
 
-
-            if (label) {
-
-                label.textContent =
-                    "Captured";
-            }
         }
 
 
-        showMessage(
-            `Photo ${photoNumber} captured.`,
-            "success"
-        );
-
-
-        /*
-            Brief reaction.
-        */
-
         await sleep(
-            550
+            500
         );
 
-
-        /*
-            Bean exits before next photo.
-        */
-
-        hideBean();
-
-
-        await sleep(
-            400
-        );
     }
 
     catch (error) {
@@ -1804,6 +957,7 @@ async function captureAutomaticPhoto(
             step.classList.remove(
                 "active"
             );
+
         }
 
 
@@ -1813,24 +967,17 @@ async function captureAutomaticPhoto(
 
 
         throw error;
+
     }
+
 }
 
 
-/* =========================================================
+/* ============================================================
    COUNTDOWN
-========================================================= */
+============================================================ */
 
 async function runCountdown() {
-
-    if (
-        !countdownOverlay ||
-        !countdownNumber
-    ) {
-
-        return;
-    }
-
 
     countdownOverlay.classList.add(
         "visible"
@@ -1838,8 +985,8 @@ async function runCountdown() {
 
 
     for (
-        const number of
-        ["3", "2", "1"]
+        const number
+        of ["3", "2", "1"]
     ) {
 
         countdownNumber.textContent =
@@ -1848,27 +995,16 @@ async function runCountdown() {
 
         if (beanSpeech) {
 
-            if (
+            beanSpeech.textContent =
+
                 number === "3"
-            ) {
+                    ? "Get ready!"
 
-                beanSpeech.textContent =
-                    "Get ready!";
-            }
+                : number === "2"
+                    ? "Hold that pose!"
 
-            else if (
-                number === "2"
-            ) {
+                : "Smile!";
 
-                beanSpeech.textContent =
-                    "Hold that pose!";
-            }
-
-            else {
-
-                beanSpeech.textContent =
-                    "Smile!";
-            }
         }
 
 
@@ -1880,12 +1016,13 @@ async function runCountdown() {
 
 
         countdownNumber.style.animation =
-            "countdownPulse 0.8s ease-out";
+            "countdownPulse .8s ease-out";
 
 
         await sleep(
             1000
         );
+
     }
 
 
@@ -1897,18 +1034,8 @@ async function runCountdown() {
 
         beanSpeech.textContent =
             "Cheese!";
+
     }
-
-
-    countdownNumber.style.animation =
-        "none";
-
-
-    void countdownNumber.offsetWidth;
-
-
-    countdownNumber.style.animation =
-        "countdownPulse 0.35s ease-out";
 
 
     await sleep(
@@ -1919,19 +1046,15 @@ async function runCountdown() {
     countdownOverlay.classList.remove(
         "visible"
     );
+
 }
 
 
-/* =========================================================
-   FLASH
-========================================================= */
+/* ============================================================
+   CAMERA FLASH
+============================================================ */
 
 function triggerFlash() {
-
-    if (!flash) {
-        return;
-    }
-
 
     flash.classList.remove(
         "active"
@@ -1944,41 +1067,40 @@ function triggerFlash() {
     flash.classList.add(
         "active"
     );
+
 }
 
 
-/* =========================================================
+/* ============================================================
    PHOTO COUNT
-========================================================= */
+============================================================ */
 
 function updatePhotoCount() {
 
-    const counter =
-        $("photoCount");
+    if ($("photoCount")) {
 
-
-    if (counter) {
-
-        counter.textContent =
+        $("photoCount").textContent =
             `${photoCount} / 3`;
+
     }
+
 }
 
 
-/* =========================================================
+/* ============================================================
    RESET PHOTO STEPS
-========================================================= */
+============================================================ */
 
 function resetPhotoSteps() {
 
     for (
-        let i = 1;
-        i <= 3;
-        i++
+        let number = 1;
+        number <= 3;
+        number++
     ) {
 
         const step =
-            $(`step${i}`);
+            $(`step${number}`);
 
 
         if (!step) {
@@ -1992,153 +1114,335 @@ function resetPhotoSteps() {
         );
 
 
-        const label =
-            step.querySelector(
-                "div:last-child"
-            );
+        step.querySelector(
+            "div:last-child"
+        ).textContent =
+            "Ready";
 
-
-        if (label) {
-
-            label.textContent =
-                "Ready";
-        }
     }
+
 }
 
 
-/* =========================================================
-   CREATE COLLAGE
-========================================================= */
+/* ============================================================
+   CLEAR DIGITAL GALLERY
+============================================================ */
+
+function clearDigitalGallery() {
+
+    currentGalleryUrl =
+        null;
+
+
+    if (qrCodeContainer) {
+
+        qrCodeContainer.innerHTML =
+            "";
+
+    }
+
+
+    if (digitalGalleryPanel) {
+
+        digitalGalleryPanel.classList.remove(
+            "visible"
+        );
+
+    }
+
+
+    if (digitalGalleryUnavailable) {
+
+        digitalGalleryUnavailable.classList.remove(
+            "visible"
+        );
+
+    }
+
+
+    if (galleryLink) {
+
+        galleryLink.href =
+            "#";
+
+    }
+
+}
+
+
+/* ============================================================
+   SHOW DIGITAL GALLERY
+============================================================ */
+
+function showDigitalGallery(
+    galleryUrl
+) {
+
+    clearDigitalGallery();
+
+
+    if (!galleryUrl) {
+
+        showDigitalGalleryUnavailable();
+
+        return;
+
+    }
+
+
+    currentGalleryUrl =
+        galleryUrl;
+
+
+    if (galleryLink) {
+
+        galleryLink.href =
+            galleryUrl;
+
+    }
+
+
+    if (!qrCodeContainer) {
+
+        return;
+
+    }
+
+
+    /*
+        QRCode comes from qrcodejs loaded
+        by index.html.
+    */
+
+    if (
+        typeof QRCode
+        === "undefined"
+    ) {
+
+        console.error(
+            "QRCode library did not load."
+        );
+
+
+        showDigitalGalleryUnavailable();
+
+        return;
+
+    }
+
+
+    new QRCode(
+        qrCodeContainer,
+        {
+            text:
+                galleryUrl,
+
+            width:
+                190,
+
+            height:
+                190,
+
+            colorDark:
+                "#000000",
+
+            colorLight:
+                "#ffffff",
+
+            correctLevel:
+                QRCode.CorrectLevel.H
+        }
+    );
+
+
+    if (digitalGalleryPanel) {
+
+        digitalGalleryPanel.classList.add(
+            "visible"
+        );
+
+    }
+
+
+    if (digitalGalleryUnavailable) {
+
+        digitalGalleryUnavailable.classList.remove(
+            "visible"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   DIGITAL GALLERY UNAVAILABLE
+============================================================ */
+
+function showDigitalGalleryUnavailable() {
+
+    currentGalleryUrl =
+        null;
+
+
+    if (digitalGalleryPanel) {
+
+        digitalGalleryPanel.classList.remove(
+            "visible"
+        );
+
+    }
+
+
+    if (digitalGalleryUnavailable) {
+
+        digitalGalleryUnavailable.classList.add(
+            "visible"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   AUTOMATIC COLLAGE
+============================================================ */
 
 async function createCollageAutomatically() {
 
-    try {
-
-        const response =
-            await fetch(
-                "/make-collage",
-                {
-                    method: "POST"
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.success
-        ) {
-
-            throw new Error(
-                data.message ||
-                "Could not create collage."
-            );
-        }
-
-
-        /*
-            YELLOW -> CORAL
-        */
-
-        setBoothPhase(
-            "complete"
+    const response =
+        await fetch(
+            "/make-collage",
+            {
+                method: "POST"
+            }
         );
 
 
-        setStatus(
-            "Collage ready"
-        );
+    const data =
+        await response.json();
 
 
-        showMessage(
-            "Collage created successfully.",
-            "success"
-        );
-
-
-        setBeanState(
-            "celebrate",
-            "Your collage is ready! ✨"
-        );
-
-
-        /*
-            Hide Bean while the full collage preview is open.
-
-            This guarantees he cannot cover the collage.
-        */
-
-        hideBean();
-
-
-        if (collageImage) {
-
-            collageImage.src =
-                "/collage-image?t=" +
-                Date.now();
-
-
-            collageImage.style.display =
-                "block";
-        }
-
-
-        if (collageOverlay) {
-
-            collageOverlay.classList.add(
-                "visible"
-            );
-        }
-
-
-        if (printButton) {
-
-            printButton.style.display =
-                "block";
-        }
-
-
-        if (retakeButton) {
-
-            retakeButton.style.display =
-                "block";
-        }
-
-
-        if (menuButton) {
-
-            menuButton.style.display =
-                "block";
-        }
-
-
-        setSessionUI(
-            false
-        );
-    }
-
-    catch (error) {
-
-        showBeanError(
-            "I couldn't create the collage."
-        );
-
+    if (
+        !response.ok
+        || !data.success
+    ) {
 
         throw new Error(
-            "Could not create collage: " +
-            error.message
+            data.message
+            || "Could not create collage."
         );
+
     }
+
+
+    setBoothPhase(
+        "complete"
+    );
+
+
+    setStatus(
+        "Collage ready"
+    );
+
+
+    showMessage(
+        "Collage created successfully.",
+        "success"
+    );
+
+
+    setBeanState(
+        "celebrate",
+        "Your collage is ready! ✨"
+    );
+
+
+    /*
+        Show the locally generated collage.
+    */
+
+    collageImage.src =
+        "/collage-image?t="
+        + Date.now();
+
+
+    collageImage.style.display =
+        "block";
+
+
+    /*
+        DIGITAL GALLERY
+
+        app.py returns:
+
+        cloud_available
+        gallery_url
+        session_id
+    */
+
+    if (
+        data.cloud_available
+        && data.gallery_url
+    ) {
+
+        showDigitalGallery(
+            data.gallery_url
+        );
+
+
+        console.log(
+            "PhotoBean gallery:",
+            data.gallery_url
+        );
+
+    }
+
+    else {
+
+        showDigitalGalleryUnavailable();
+
+
+        console.warn(
+            "PhotoBean digital gallery unavailable.",
+            data.cloud_error || ""
+        );
+
+    }
+
+
+    /*
+        Show final result screen.
+    */
+
+    collageOverlay.classList.add(
+        "visible"
+    );
+
+
+    printButton.style.display =
+        "block";
+
+
+    retakeButton.style.display =
+        "block";
+
+
+    menuButton.style.display =
+        "block";
+
+
+    setSessionUI(
+        false
+    );
+
 }
 
 
-/* =========================================================
+/* ============================================================
    HIDE COLLAGE
-========================================================= */
+============================================================ */
 
 function hideCollage() {
 
@@ -2147,6 +1451,7 @@ function hideCollage() {
         collageOverlay.classList.remove(
             "visible"
         );
+
     }
 
 
@@ -2154,6 +1459,7 @@ function hideCollage() {
 
         collageImage.style.display =
             "none";
+
     }
 
 
@@ -2161,13 +1467,18 @@ function hideCollage() {
 
         printButton.style.display =
             "none";
+
     }
+
+
+    clearDigitalGallery();
+
 }
 
 
-/* =========================================================
+/* ============================================================
    RETAKE SESSION
-========================================================= */
+============================================================ */
 
 async function retakeSession() {
 
@@ -2181,17 +1492,9 @@ async function retakeSession() {
         hideCollage();
 
 
-        setSessionUI(
-            false
-        );
-
-
         setBoothPhase(
             "idle"
         );
-
-
-        moveBeanToIdlePosition();
 
 
         showMessage(
@@ -2200,12 +1503,8 @@ async function retakeSession() {
         );
 
 
-        showBeanError(
-            "We need to reconnect the camera first."
-        );
-
-
         return;
+
     }
 
 
@@ -2216,11 +1515,8 @@ async function retakeSession() {
         0;
 
 
-    sessionActive =
-        false;
-
-
     resetPhotoSteps();
+
 
     updatePhotoCount();
 
@@ -2231,27 +1527,21 @@ async function retakeSession() {
     );
 
 
-    hideBean();
-
-
     await sleep(
         400
     );
 
 
     startSession();
+
 }
 
 
-/* =========================================================
+/* ============================================================
    RETURN TO MENU
-========================================================= */
+============================================================ */
 
 function returnToMenu() {
-
-    /*
-        CORAL -> BLUE
-    */
 
     setBoothPhase(
         "idle"
@@ -2275,6 +1565,7 @@ function returnToMenu() {
 
     resetPhotoSteps();
 
+
     updatePhotoCount();
 
 
@@ -2283,64 +1574,41 @@ function returnToMenu() {
     );
 
 
-    /*
-        Wait for the camera to return to its idle size
-        before positioning Bean.
-    */
+    setStatus(
 
-    setTimeout(
-        moveBeanToIdlePosition,
-        550
+        cameraConnected
+            ? "Camera connected"
+            : "Camera disconnected"
+
     );
 
 
-    if (cameraConnected) {
+    showMessage(
 
-        setStatus(
-            "Camera connected"
-        );
+        cameraConnected
+            ? "Ready for another photo session."
+            : "Connect the camera to begin."
 
-
-        showMessage(
-            "Ready for another photo session."
-        );
-    }
-
-    else {
-
-        setStatus(
-            "Camera disconnected"
-        );
+    );
 
 
-        showMessage(
-            "Connect the camera to begin."
-        );
-    }
-
-
-    if (startButton) {
-
-        startButton.disabled =
-            !cameraConnected;
-    }
+    startButton.disabled =
+        !cameraConnected;
 
 
     resetBean();
+
 }
 
 
-/* =========================================================
+/* ============================================================
    PRINT COLLAGE
-========================================================= */
+============================================================ */
 
 async function printCollage() {
 
-    if (printButton) {
-
-        printButton.disabled =
-            true;
-    }
+    printButton.disabled =
+        true;
 
 
     showMessage(
@@ -2370,14 +1638,15 @@ async function printCollage() {
 
 
         if (
-            !response.ok ||
-            !data.success
+            !response.ok
+            || !data.success
         ) {
 
             throw new Error(
-                data.message ||
-                "Print failed."
+                data.message
+                || "Print failed."
             );
+
         }
 
 
@@ -2396,6 +1665,7 @@ async function printCollage() {
             "celebrate",
             "Printed! Thanks for visiting! 🎉"
         );
+
     }
 
     catch (error) {
@@ -2409,53 +1679,22 @@ async function printCollage() {
         showBeanError(
             "I couldn't print the collage."
         );
+
     }
 
     finally {
 
-        if (printButton) {
+        printButton.disabled =
+            false;
 
-            printButton.disabled =
-                false;
-        }
     }
+
 }
 
 
-/* =========================================================
-   WINDOW RESIZE
-========================================================= */
-
-window.addEventListener(
-    "resize",
-    () => {
-
-        /*
-            During a photo session, do not guess where Bean
-            should go. Hide him until the next photo, where
-            his safe location will be recalculated.
-        */
-
-        if (sessionActive) {
-
-            hideBean();
-
-            return;
-        }
-
-
-        /*
-            Normal idle mode.
-        */
-
-        moveBeanToIdlePosition();
-    }
-);
-
-
-/* =========================================================
-   INITIALIZE
-========================================================= */
+/* ============================================================
+   PAGE INITIALIZATION
+============================================================ */
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -2517,18 +1756,30 @@ document.addEventListener(
             $("beanSpeech");
 
 
-        /*
-            Initial UI.
-        */
+        digitalGalleryPanel =
+            $("digitalGalleryPanel");
+
+
+        digitalGalleryUnavailable =
+            $("digitalGalleryUnavailable");
+
+
+        qrCodeContainer =
+            $("qrCodeContainer");
+
+
+        galleryLink =
+            $("galleryLink");
+
+
+        galleryReadyMessage =
+            $("galleryReadyMessage");
+
 
         setSessionUI(
             false
         );
 
-
-        /*
-            Start in BLUE phase.
-        */
 
         setBoothPhase(
             "idle",
@@ -2536,15 +1787,8 @@ document.addEventListener(
         );
 
 
-        /*
-            Camera starts disconnected.
-        */
-
-        if (startButton) {
-
-            startButton.disabled =
-                true;
-        }
+        startButton.disabled =
+            true;
 
 
         setConnectionIndicator(
@@ -2559,23 +1803,14 @@ document.addEventListener(
 
         resetPhotoSteps();
 
+
         updatePhotoCount();
 
 
-        /*
-            Give the browser time to calculate all element
-            dimensions before positioning Bean.
-        */
+        clearDigitalGallery();
 
-        setTimeout(
-            () => {
 
-                moveBeanToIdlePosition();
+        resetBean();
 
-                resetBean();
-
-            },
-            200
-        );
     }
 );

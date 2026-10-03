@@ -12,9 +12,12 @@ import time
 import uuid
 from pathlib import Path
 
+from PIL import Image
+
 from camera import A7CII
 from collage import make_collage
 from printer import print_file
+from cloud_storage import upload_session
 
 import design_config
 
@@ -34,9 +37,16 @@ app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
 # ============================================================
 
 camera = A7CII()
+
 session_active = False
+
 session_photos = []
+
 latest_collage = None
+
+# Contains information returned by cloud_storage.py
+# after a successful upload.
+latest_cloud_session = None
 
 
 # ============================================================
@@ -44,103 +54,35 @@ latest_collage = None
 # ============================================================
 
 DESIGN_FOLDER = design_config.DESIGN_FOLDER
-DESIGN_LAYOUT_FILE = design_config.DESIGN_LAYOUT_FILE
+
+DESIGN_LAYOUT_FILE = (
+    design_config.DESIGN_LAYOUT_FILE
+)
 
 DESIGN_FOLDER.mkdir(
     parents=True,
     exist_ok=True
 )
 
-ALLOWED_DESIGN_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-BACKGROUND_IMAGE_PATH = DESIGN_FOLDER / "collage_background.png"
-DESIGN_SETTINGS_FILE = DESIGN_FOLDER / "design_settings.json"
-design_config.BACKGROUND_IMAGE = BACKGROUND_IMAGE_PATH
+ALLOWED_DESIGN_EXTENSIONS = {
+    ".jpg",
+    ".jpeg",
+    ".png"
+}
 
+BACKGROUND_IMAGE_PATH = (
+    DESIGN_FOLDER
+    / "collage_background.png"
+)
 
-def load_design_layout():
-    if not DESIGN_LAYOUT_FILE.exists():
-        design_config.DESIGN_ELEMENTS = []
-        return
+DESIGN_SETTINGS_FILE = (
+    DESIGN_FOLDER
+    / "design_settings.json"
+)
 
-    try:
-        with DESIGN_LAYOUT_FILE.open(
-            "r",
-            encoding="utf-8"
-        ) as file:
-            data = json.load(file)
-
-        if isinstance(data, list):
-            design_config.DESIGN_ELEMENTS = data
-        else:
-            design_config.DESIGN_ELEMENTS = []
-
-    except Exception as error:
-        print(
-            f"Could not load design layout: {error}"
-        )
-        design_config.DESIGN_ELEMENTS = []
-
-
-def save_design_layout():
-    with DESIGN_LAYOUT_FILE.open(
-        "w",
-        encoding="utf-8"
-    ) as file:
-        json.dump(
-            design_config.DESIGN_ELEMENTS,
-            file,
-            indent=4
-        )
-
-
-def load_saved_settings():
-    if not DESIGN_SETTINGS_FILE.exists():
-        return
-    try:
-        data = json.loads(DESIGN_SETTINGS_FILE.read_text(encoding="utf-8"))
-        if "event_name" in data: design_config.EVENT_NAME = str(data["event_name"])
-        if "event_subtitle" in data: design_config.EVENT_SUBTITLE = str(data["event_subtitle"])
-        if "bottom_text" in data: design_config.BOTTOM_TEXT = str(data["bottom_text"])
-        if "background_color" in data: design_config.GRAPHIC_BACKGROUND = hex_to_rgb(data["background_color"])
-        if "event_text_color" in data: design_config.EVENT_TEXT_COLOR = hex_to_rgb(data["event_text_color"])
-        if "subtitle_text_color" in data: design_config.SUBTITLE_TEXT_COLOR = hex_to_rgb(data["subtitle_text_color"])
-        if "bottom_text_color" in data: design_config.BOTTOM_TEXT_COLOR = hex_to_rgb(data["bottom_text_color"])
-        if "event_font_size" in data: design_config.EVENT_FONT_SIZE_PERCENT = float(data["event_font_size"])
-        if "subtitle_font_size" in data: design_config.SUBTITLE_FONT_SIZE_PERCENT = float(data["subtitle_font_size"])
-        if "bottom_font_size" in data: design_config.BOTTOM_FONT_SIZE_PERCENT = float(data["bottom_font_size"])
-        if "collage_background_style" in data: design_config.COLLAGE_BACKGROUND_STYLE = str(data["collage_background_style"])
-        if "collage_background_color" in data: design_config.COLLAGE_BACKGROUND_COLOR = hex_to_rgb(data["collage_background_color"])
-        if "collage_gradient_start" in data: design_config.COLLAGE_GRADIENT_START = hex_to_rgb(data["collage_gradient_start"])
-        if "collage_gradient_end" in data: design_config.COLLAGE_GRADIENT_END = hex_to_rgb(data["collage_gradient_end"])
-        if "collage_gradient_direction" in data: design_config.COLLAGE_GRADIENT_DIRECTION = str(data["collage_gradient_direction"])
-    except Exception as error:
-        print(f"Could not load saved design settings: {error}")
-
-
-# ============================================================
-# JSON ERROR FOR OVERSIZED UPLOADS
-# ============================================================
-
-@app.errorhandler(413)
-def upload_too_large(error):
-    return jsonify({
-        "success": False,
-        "message": "The image is too large. Please use an image smaller than 50 MB."
-    }), 413
-
-
-# ============================================================
-# HOME / DESIGN PAGES
-# ============================================================
-
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
-@app.route("/design")
-def design():
-    return render_template("design.html")
+design_config.BACKGROUND_IMAGE = (
+    BACKGROUND_IMAGE_PATH
+)
 
 
 # ============================================================
@@ -148,6 +90,7 @@ def design():
 # ============================================================
 
 def rgb_to_hex(rgb):
+
     return "#{:02x}{:02x}{:02x}".format(
         rgb[0],
         rgb[1],
@@ -156,10 +99,16 @@ def rgb_to_hex(rgb):
 
 
 def hex_to_rgb(hex_color):
-    hex_color = str(hex_color).lstrip("#")
+
+    hex_color = str(
+        hex_color
+    ).lstrip("#")
 
     if len(hex_color) != 6:
-        raise ValueError("Invalid color.")
+
+        raise ValueError(
+            "Invalid color."
+        )
 
     return (
         int(hex_color[0:2], 16),
@@ -168,8 +117,283 @@ def hex_to_rgb(hex_color):
     )
 
 
+# ============================================================
+# LOAD DESIGN LAYOUT
+# ============================================================
+
+def load_design_layout():
+
+    if not DESIGN_LAYOUT_FILE.exists():
+
+        design_config.DESIGN_ELEMENTS = []
+
+        return
+
+    try:
+
+        with DESIGN_LAYOUT_FILE.open(
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            data = json.load(
+                file
+            )
+
+        if isinstance(
+            data,
+            list
+        ):
+
+            design_config.DESIGN_ELEMENTS = (
+                data
+            )
+
+        else:
+
+            design_config.DESIGN_ELEMENTS = []
+
+    except Exception as error:
+
+        print(
+            f"Could not load design layout: "
+            f"{error}"
+        )
+
+        design_config.DESIGN_ELEMENTS = []
+
+
+# ============================================================
+# SAVE DESIGN LAYOUT
+# ============================================================
+
+def save_design_layout():
+
+    with DESIGN_LAYOUT_FILE.open(
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        json.dump(
+            design_config.DESIGN_ELEMENTS,
+            file,
+            indent=4
+        )
+
+
+# ============================================================
+# LOAD SAVED DESIGN SETTINGS
+# ============================================================
+
+def load_saved_settings():
+
+    if not DESIGN_SETTINGS_FILE.exists():
+        return
+
+    try:
+
+        data = json.loads(
+            DESIGN_SETTINGS_FILE.read_text(
+                encoding="utf-8"
+            )
+        )
+
+        if "event_name" in data:
+
+            design_config.EVENT_NAME = str(
+                data["event_name"]
+            )
+
+        if "event_subtitle" in data:
+
+            design_config.EVENT_SUBTITLE = str(
+                data["event_subtitle"]
+            )
+
+        if "bottom_text" in data:
+
+            design_config.BOTTOM_TEXT = str(
+                data["bottom_text"]
+            )
+
+        if "background_color" in data:
+
+            design_config.GRAPHIC_BACKGROUND = (
+                hex_to_rgb(
+                    data[
+                        "background_color"
+                    ]
+                )
+            )
+
+        if "event_text_color" in data:
+
+            design_config.EVENT_TEXT_COLOR = (
+                hex_to_rgb(
+                    data[
+                        "event_text_color"
+                    ]
+                )
+            )
+
+        if "subtitle_text_color" in data:
+
+            design_config.SUBTITLE_TEXT_COLOR = (
+                hex_to_rgb(
+                    data[
+                        "subtitle_text_color"
+                    ]
+                )
+            )
+
+        if "bottom_text_color" in data:
+
+            design_config.BOTTOM_TEXT_COLOR = (
+                hex_to_rgb(
+                    data[
+                        "bottom_text_color"
+                    ]
+                )
+            )
+
+        if "event_font_size" in data:
+
+            design_config.EVENT_FONT_SIZE_PERCENT = (
+                float(
+                    data[
+                        "event_font_size"
+                    ]
+                )
+            )
+
+        if "subtitle_font_size" in data:
+
+            design_config.SUBTITLE_FONT_SIZE_PERCENT = (
+                float(
+                    data[
+                        "subtitle_font_size"
+                    ]
+                )
+            )
+
+        if "bottom_font_size" in data:
+
+            design_config.BOTTOM_FONT_SIZE_PERCENT = (
+                float(
+                    data[
+                        "bottom_font_size"
+                    ]
+                )
+            )
+
+        if "collage_background_style" in data:
+
+            design_config.COLLAGE_BACKGROUND_STYLE = (
+                str(
+                    data[
+                        "collage_background_style"
+                    ]
+                )
+            )
+
+        if "collage_background_color" in data:
+
+            design_config.COLLAGE_BACKGROUND_COLOR = (
+                hex_to_rgb(
+                    data[
+                        "collage_background_color"
+                    ]
+                )
+            )
+
+        if "collage_gradient_start" in data:
+
+            design_config.COLLAGE_GRADIENT_START = (
+                hex_to_rgb(
+                    data[
+                        "collage_gradient_start"
+                    ]
+                )
+            )
+
+        if "collage_gradient_end" in data:
+
+            design_config.COLLAGE_GRADIENT_END = (
+                hex_to_rgb(
+                    data[
+                        "collage_gradient_end"
+                    ]
+                )
+            )
+
+        if "collage_gradient_direction" in data:
+
+            design_config.COLLAGE_GRADIENT_DIRECTION = (
+                str(
+                    data[
+                        "collage_gradient_direction"
+                    ]
+                )
+            )
+
+    except Exception as error:
+
+        print(
+            "Could not load saved "
+            f"design settings: {error}"
+        )
+
+
+# ============================================================
+# LOAD DESIGN FILES ON STARTUP
+# ============================================================
+
 load_design_layout()
+
 load_saved_settings()
+
+
+# ============================================================
+# JSON ERROR FOR OVERSIZED UPLOADS
+# ============================================================
+
+@app.errorhandler(413)
+def upload_too_large(error):
+
+    return jsonify({
+
+        "success": False,
+
+        "message":
+            "The image is too large. "
+            "Please use an image smaller "
+            "than 50 MB."
+
+    }), 413
+
+
+# ============================================================
+# HOME PAGE
+# ============================================================
+
+@app.route("/")
+def index():
+
+    return render_template(
+        "index.html"
+    )
+
+
+# ============================================================
+# DESIGN STUDIO PAGE
+# ============================================================
+
+@app.route("/design")
+def design():
+
+    return render_template(
+        "design.html"
+    )
 
 
 # ============================================================
@@ -178,7 +402,9 @@ load_saved_settings()
 
 @app.route("/design-config")
 def get_design_config():
+
     return jsonify({
+
         "event_name":
             design_config.EVENT_NAME,
 
@@ -242,7 +468,11 @@ def get_design_config():
             BACKGROUND_IMAGE_PATH.exists(),
 
         "background_image_url":
-            "/background-image" if BACKGROUND_IMAGE_PATH.exists() else None,
+            (
+                "/background-image"
+                if BACKGROUND_IMAGE_PATH.exists()
+                else None
+            ),
 
         "design_elements":
             design_config.DESIGN_ELEMENTS,
@@ -262,56 +492,171 @@ def get_design_config():
 
 
 # ============================================================
-# FULL-CANVAS BACKGROUND IMAGE
+# UPLOAD FULL-CANVAS BACKGROUND
 # ============================================================
 
-@app.route("/upload-background", methods=["POST"])
-@app.route("/upload-background-image", methods=["POST"])
+@app.route(
+    "/upload-background",
+    methods=["POST"]
+)
+@app.route(
+    "/upload-background-image",
+    methods=["POST"]
+)
 def upload_background():
+
     try:
-        image_file = request.files.get("background")
-        if image_file is None or image_file.filename == "":
-            return jsonify({"success": False, "message": "Choose a background image first."}), 400
 
-        extension = Path(image_file.filename).suffix.lower()
-        if extension not in ALLOWED_DESIGN_EXTENSIONS:
-            return jsonify({"success": False, "message": "Only PNG, JPG and JPEG images are allowed."}), 400
+        image_file = request.files.get(
+            "background"
+        )
 
-        # Normalize every upload to PNG so the path never changes.
-        from PIL import Image
-        image_file.stream.seek(0)
-        with Image.open(image_file.stream) as image:
-            image.convert("RGB").save(BACKGROUND_IMAGE_PATH, "PNG")
+        if (
+            image_file is None
+            or image_file.filename == ""
+        ):
 
-        design_config.BACKGROUND_IMAGE = BACKGROUND_IMAGE_PATH
-        design_config.COLLAGE_BACKGROUND_STYLE = "image"
+            return jsonify({
+
+                "success": False,
+
+                "message":
+                    "Choose a background "
+                    "image first."
+
+            }), 400
+
+        extension = Path(
+            image_file.filename
+        ).suffix.lower()
+
+        if extension not in (
+            ALLOWED_DESIGN_EXTENSIONS
+        ):
+
+            return jsonify({
+
+                "success": False,
+
+                "message":
+                    "Only PNG, JPG and JPEG "
+                    "images are allowed."
+
+            }), 400
+
+        # Normalize every background to PNG.
+
+        image_file.stream.seek(
+            0
+        )
+
+        with Image.open(
+            image_file.stream
+        ) as image:
+
+            image.convert(
+                "RGB"
+            ).save(
+                BACKGROUND_IMAGE_PATH,
+                "PNG"
+            )
+
+        design_config.BACKGROUND_IMAGE = (
+            BACKGROUND_IMAGE_PATH
+        )
+
+        design_config.COLLAGE_BACKGROUND_STYLE = (
+            "image"
+        )
+
         return jsonify({
-            "success": True,
-            "message": "Full-canvas background uploaded.",
-            "url": "/background-image"
-        })
-    except Exception as error:
-        print(f"Background upload error: {error}")
-        return jsonify({"success": False, "message": str(error)}), 500
 
+            "success": True,
+
+            "message":
+                "Full-canvas background uploaded.",
+
+            "url":
+                "/background-image"
+        })
+
+    except Exception as error:
+
+        print(
+            f"Background upload error: "
+            f"{error}"
+        )
+
+        return jsonify({
+
+            "success": False,
+
+            "message":
+                str(error)
+
+        }), 500
+
+
+# ============================================================
+# SERVE BACKGROUND IMAGE
+# ============================================================
 
 @app.route("/background-image")
 def background_image():
+
     if not BACKGROUND_IMAGE_PATH.exists():
+
         return "", 404
-    return send_file(BACKGROUND_IMAGE_PATH, mimetype="image/png")
+
+    return send_file(
+        BACKGROUND_IMAGE_PATH,
+        mimetype="image/png"
+    )
 
 
-@app.route("/delete-background", methods=["POST"])
+# ============================================================
+# DELETE BACKGROUND IMAGE
+# ============================================================
+
+@app.route(
+    "/delete-background",
+    methods=["POST"]
+)
 def delete_background():
+
     try:
+
         if BACKGROUND_IMAGE_PATH.exists():
+
             BACKGROUND_IMAGE_PATH.unlink()
-        if design_config.COLLAGE_BACKGROUND_STYLE == "image":
-            design_config.COLLAGE_BACKGROUND_STYLE = "solid"
-        return jsonify({"success": True, "message": "Background image removed."})
+
+        if (
+            design_config.COLLAGE_BACKGROUND_STYLE
+            == "image"
+        ):
+
+            design_config.COLLAGE_BACKGROUND_STYLE = (
+                "solid"
+            )
+
+        return jsonify({
+
+            "success": True,
+
+            "message":
+                "Background image removed."
+        })
+
     except Exception as error:
-        return jsonify({"success": False, "message": str(error)}), 500
+
+        return jsonify({
+
+            "success": False,
+
+            "message":
+                str(error)
+
+        }), 500
 
 
 # ============================================================
@@ -323,19 +668,33 @@ def delete_background():
     methods=["POST"]
 )
 def upload_design():
+
     try:
+
         if "image" not in request.files:
+
             return jsonify({
+
                 "success": False,
-                "message": "No image was selected."
+
+                "message":
+                    "No image was selected."
+
             }), 400
 
-        image_file = request.files["image"]
+        image_file = request.files[
+            "image"
+        ]
 
         if image_file.filename == "":
+
             return jsonify({
+
                 "success": False,
-                "message": "No image was selected."
+
+                "message":
+                    "No image was selected."
+
             }), 400
 
         original_name = Path(
@@ -346,46 +705,84 @@ def upload_design():
             original_name
         ).suffix.lower()
 
-        if extension not in ALLOWED_DESIGN_EXTENSIONS:
+        if extension not in (
+            ALLOWED_DESIGN_EXTENSIONS
+        ):
+
             return jsonify({
+
                 "success": False,
+
                 "message":
-                    "Only JPG, JPEG and PNG images are allowed."
+                    "Only JPG, JPEG and PNG "
+                    "images are allowed."
+
             }), 400
 
-        element_id = uuid.uuid4().hex[:12]
+        element_id = (
+            uuid.uuid4().hex[:12]
+        )
 
         filename = (
-            f"design_{element_id}{extension}"
+            f"design_{element_id}"
+            f"{extension}"
         )
 
         save_path = (
-            DESIGN_FOLDER / filename
+            DESIGN_FOLDER
+            / filename
         )
 
-        image_file.save(save_path)
+        image_file.save(
+            save_path
+        )
 
         next_z = 1
 
         if design_config.DESIGN_ELEMENTS:
+
             next_z = (
                 max(
-                    int(item.get("z_index", 0))
-                    for item in design_config.DESIGN_ELEMENTS
+                    int(
+                        item.get(
+                            "z_index",
+                            0
+                        )
+                    )
+                    for item
+                    in design_config.DESIGN_ELEMENTS
                 )
                 + 1
             )
 
         element = {
-            "id": element_id,
-            "filename": filename,
-            "original_name": original_name,
-            "x": 0.08,
-            "y": 0.08,
-            "width": 0.20,
-            "height": 0.20,
-            "rotation": 0,
-            "z_index": next_z
+
+            "id":
+                element_id,
+
+            "filename":
+                filename,
+
+            "original_name":
+                original_name,
+
+            "x":
+                0.08,
+
+            "y":
+                0.08,
+
+            "width":
+                0.20,
+
+            "height":
+                0.20,
+
+            "rotation":
+                0,
+
+            "z_index":
+                next_z
         }
 
         design_config.DESIGN_ELEMENTS.append(
@@ -395,23 +792,34 @@ def upload_design():
         save_design_layout()
 
         print(
-            f"Design element uploaded: {save_path}"
+            "Design element uploaded: "
+            f"{save_path}"
         )
 
         return jsonify({
+
             "success": True,
-            "message": "Design image uploaded.",
-            "element": element
+
+            "message":
+                "Design image uploaded.",
+
+            "element":
+                element
         })
 
     except Exception as error:
+
         print(
             f"Design upload error: {error}"
         )
 
         return jsonify({
+
             "success": False,
-            "message": str(error)
+
+            "message":
+                str(error)
+
         }), 500
 
 
@@ -423,18 +831,35 @@ def upload_design():
     "/design-image/<filename>"
 )
 def design_image(filename):
-    safe_name = Path(filename).name
-    image_path = DESIGN_FOLDER / safe_name
+
+    safe_name = Path(
+        filename
+    ).name
+
+    image_path = (
+        DESIGN_FOLDER
+        / safe_name
+    )
 
     if not image_path.exists():
+
         return "", 404
 
-    extension = image_path.suffix.lower()
+    extension = (
+        image_path.suffix.lower()
+    )
 
     if extension == ".png":
-        mimetype = "image/png"
+
+        mimetype = (
+            "image/png"
+        )
+
     else:
-        mimetype = "image/jpeg"
+
+        mimetype = (
+            "image/jpeg"
+        )
 
     return send_file(
         image_path,
@@ -451,25 +876,38 @@ def design_image(filename):
     methods=["POST"]
 )
 def delete_design(element_id):
+
     try:
+
         element = next(
             (
                 item
                 for item
                 in design_config.DESIGN_ELEMENTS
-                if item.get("id") == element_id
+                if item.get("id")
+                == element_id
             ),
             None
         )
 
         if element is None:
+
             return jsonify({
+
                 "success": False,
-                "message": "Design element not found."
+
+                "message":
+                    "Design element not found."
+
             }), 404
 
         filename = Path(
-            str(element.get("filename", ""))
+            str(
+                element.get(
+                    "filename",
+                    ""
+                )
+            )
         ).name
 
         design_config.DESIGN_ELEMENTS.remove(
@@ -479,26 +917,37 @@ def delete_design(element_id):
         save_design_layout()
 
         if filename:
+
             image_path = (
-                DESIGN_FOLDER / filename
+                DESIGN_FOLDER
+                / filename
             )
 
             if image_path.exists():
+
                 image_path.unlink()
 
         return jsonify({
+
             "success": True,
-            "message": "Design element deleted."
+
+            "message":
+                "Design element deleted."
         })
 
     except Exception as error:
+
         print(
             f"Delete design error: {error}"
         )
 
         return jsonify({
+
             "success": False,
-            "message": str(error)
+
+            "message":
+                str(error)
+
         }), 500
 
 
@@ -511,7 +960,9 @@ def delete_design(element_id):
     methods=["POST"]
 )
 def save_design_elements():
+
     try:
+
         data = request.get_json(
             silent=True
         ) or {}
@@ -520,77 +971,126 @@ def save_design_elements():
             "design_elements"
         )
 
-        if not isinstance(elements, list):
+        if not isinstance(
+            elements,
+            list
+        ):
+
             return jsonify({
+
                 "success": False,
+
                 "message":
                     "Invalid design element data."
+
             }), 400
 
         existing_files = {
+
             item.get("id"):
                 Path(
-                    str(item.get("filename", ""))
+                    str(
+                        item.get(
+                            "filename",
+                            ""
+                        )
+                    )
                 ).name
+
             for item
             in design_config.DESIGN_ELEMENTS
         }
 
         cleaned = []
 
-        for index, element in enumerate(elements):
+        for index, element in enumerate(
+            elements
+        ):
+
             element_id = str(
-                element.get("id", "")
+                element.get(
+                    "id",
+                    ""
+                )
             ).strip()
 
             if not element_id:
                 continue
 
-            filename = existing_files.get(
-                element_id
+            filename = (
+                existing_files.get(
+                    element_id
+                )
             )
 
             if not filename:
                 continue
 
             x = float(
-                element.get("x", 0)
+                element.get(
+                    "x",
+                    0
+                )
             )
 
             y = float(
-                element.get("y", 0)
+                element.get(
+                    "y",
+                    0
+                )
             )
 
             width = float(
-                element.get("width", 0.20)
+                element.get(
+                    "width",
+                    0.20
+                )
             )
 
             height = float(
-                element.get("height", 0.20)
+                element.get(
+                    "height",
+                    0.20
+                )
             )
 
             rotation = float(
-                element.get("rotation", 0)
+                element.get(
+                    "rotation",
+                    0
+                )
             )
 
             width = max(
                 0.02,
-                min(1.0, width)
+                min(
+                    1.0,
+                    width
+                )
             )
 
             height = max(
                 0.02,
-                min(1.0, height)
+                min(
+                    1.0,
+                    height
+                )
             )
 
             x = max(
                 0.0,
-                min(1.0 - width, x)
+                min(
+                    1.0 - width,
+                    x
+                )
             )
 
             y = max(
                 0.0,
-                min(1.0 - height, y)
+                min(
+                    1.0 - height,
+                    y
+                )
             )
 
             original_name = str(
@@ -601,35 +1101,63 @@ def save_design_elements():
             )
 
             cleaned.append({
-                "id": element_id,
-                "filename": filename,
-                "original_name": original_name,
-                "x": x,
-                "y": y,
-                "width": width,
-                "height": height,
-                "rotation": rotation % 360,
-                "z_index": index
+
+                "id":
+                    element_id,
+
+                "filename":
+                    filename,
+
+                "original_name":
+                    original_name,
+
+                "x":
+                    x,
+
+                "y":
+                    y,
+
+                "width":
+                    width,
+
+                "height":
+                    height,
+
+                "rotation":
+                    rotation % 360,
+
+                "z_index":
+                    index
             })
 
-        design_config.DESIGN_ELEMENTS = cleaned
+        design_config.DESIGN_ELEMENTS = (
+            cleaned
+        )
 
         save_design_layout()
 
         return jsonify({
+
             "success": True,
+
             "message":
                 "Design elements saved."
         })
 
     except Exception as error:
+
         print(
-            f"Design element save error: {error}"
+            "Design element save error: "
+            f"{error}"
         )
 
         return jsonify({
+
             "success": False,
-            "message": str(error)
+
+            "message":
+                str(error)
+
         }), 500
 
 
@@ -642,79 +1170,134 @@ def save_design_elements():
     methods=["POST"]
 )
 def save_design():
+
     try:
+
         data = request.get_json(
             silent=True
         )
 
         if not data:
+
             return jsonify({
+
                 "success": False,
+
                 "message":
                     "No design data received."
+
             }), 400
 
+        # ----------------------------------------------------
+        # EVENT TEXT
+        # ----------------------------------------------------
+
         if "event_name" in data:
+
             design_config.EVENT_NAME = str(
                 data["event_name"]
             )
 
         if "event_subtitle" in data:
+
             design_config.EVENT_SUBTITLE = str(
                 data["event_subtitle"]
             )
 
         if "bottom_text" in data:
+
             design_config.BOTTOM_TEXT = str(
                 data["bottom_text"]
             )
 
+        # ----------------------------------------------------
+        # COLORS
+        # ----------------------------------------------------
+
         if "background_color" in data:
+
             design_config.GRAPHIC_BACKGROUND = (
                 hex_to_rgb(
-                    data["background_color"]
+                    data[
+                        "background_color"
+                    ]
                 )
             )
 
         if "event_text_color" in data:
+
             design_config.EVENT_TEXT_COLOR = (
                 hex_to_rgb(
-                    data["event_text_color"]
+                    data[
+                        "event_text_color"
+                    ]
                 )
             )
 
         if "subtitle_text_color" in data:
+
             design_config.SUBTITLE_TEXT_COLOR = (
                 hex_to_rgb(
-                    data["subtitle_text_color"]
+                    data[
+                        "subtitle_text_color"
+                    ]
                 )
             )
 
         if "bottom_text_color" in data:
+
             design_config.BOTTOM_TEXT_COLOR = (
                 hex_to_rgb(
-                    data["bottom_text_color"]
+                    data[
+                        "bottom_text_color"
+                    ]
                 )
             )
 
+        # ----------------------------------------------------
+        # FONT SIZES
+        # ----------------------------------------------------
+
         if "event_font_size" in data:
-            design_config.EVENT_FONT_SIZE_PERCENT = float(
-                data["event_font_size"]
+
+            design_config.EVENT_FONT_SIZE_PERCENT = (
+                float(
+                    data[
+                        "event_font_size"
+                    ]
+                )
             )
 
         if "subtitle_font_size" in data:
-            design_config.SUBTITLE_FONT_SIZE_PERCENT = float(
-                data["subtitle_font_size"]
+
+            design_config.SUBTITLE_FONT_SIZE_PERCENT = (
+                float(
+                    data[
+                        "subtitle_font_size"
+                    ]
+                )
             )
 
         if "bottom_font_size" in data:
-            design_config.BOTTOM_FONT_SIZE_PERCENT = float(
-                data["bottom_font_size"]
+
+            design_config.BOTTOM_FONT_SIZE_PERCENT = (
+                float(
+                    data[
+                        "bottom_font_size"
+                    ]
+                )
             )
 
+        # ----------------------------------------------------
+        # BACKGROUND STYLE
+        # ----------------------------------------------------
+
         if "collage_background_style" in data:
+
             style = str(
-                data["collage_background_style"]
+                data[
+                    "collage_background_style"
+                ]
             ).lower()
 
             if style not in (
@@ -722,36 +1305,60 @@ def save_design():
                 "gradient",
                 "image"
             ):
+
                 raise ValueError(
-                    "Invalid collage background style."
+                    "Invalid collage "
+                    "background style."
                 )
 
-            design_config.COLLAGE_BACKGROUND_STYLE = style
+            design_config.COLLAGE_BACKGROUND_STYLE = (
+                style
+            )
+
+        # ----------------------------------------------------
+        # SOLID BACKGROUND
+        # ----------------------------------------------------
 
         if "collage_background_color" in data:
+
             design_config.COLLAGE_BACKGROUND_COLOR = (
                 hex_to_rgb(
-                    data["collage_background_color"]
+                    data[
+                        "collage_background_color"
+                    ]
                 )
             )
 
+        # ----------------------------------------------------
+        # GRADIENT
+        # ----------------------------------------------------
+
         if "collage_gradient_start" in data:
+
             design_config.COLLAGE_GRADIENT_START = (
                 hex_to_rgb(
-                    data["collage_gradient_start"]
+                    data[
+                        "collage_gradient_start"
+                    ]
                 )
             )
 
         if "collage_gradient_end" in data:
+
             design_config.COLLAGE_GRADIENT_END = (
                 hex_to_rgb(
-                    data["collage_gradient_end"]
+                    data[
+                        "collage_gradient_end"
+                    ]
                 )
             )
 
         if "collage_gradient_direction" in data:
+
             direction = str(
-                data["collage_gradient_direction"]
+                data[
+                    "collage_gradient_direction"
+                ]
             ).lower()
 
             if direction not in (
@@ -759,31 +1366,48 @@ def save_design():
                 "vertical",
                 "diagonal"
             ):
+
                 raise ValueError(
                     "Invalid gradient direction."
                 )
 
-            design_config.COLLAGE_GRADIENT_DIRECTION = direction
+            design_config.COLLAGE_GRADIENT_DIRECTION = (
+                direction
+            )
+
+        # ----------------------------------------------------
+        # PERSIST SETTINGS
+        # ----------------------------------------------------
 
         DESIGN_SETTINGS_FILE.write_text(
-            json.dumps(data, indent=4),
+            json.dumps(
+                data,
+                indent=4
+            ),
             encoding="utf-8"
         )
 
         return jsonify({
+
             "success": True,
+
             "message":
                 "Design settings saved."
         })
 
     except Exception as error:
+
         print(
             f"Design save error: {error}"
         )
 
         return jsonify({
+
             "success": False,
-            "message": str(error)
+
+            "message":
+                str(error)
+
         }), 500
 
 
@@ -796,24 +1420,35 @@ def save_design():
     methods=["POST"]
 )
 def connect_camera():
+
     try:
+
         camera.connect()
+
         camera.start_liveview()
 
         return jsonify({
+
             "success": True,
+
             "message":
                 "Camera connected successfully."
         })
 
     except Exception as error:
+
         print(
-            f"Camera connection error: {error}"
+            f"Camera connection error: "
+            f"{error}"
         )
 
         return jsonify({
+
             "success": False,
-            "message": str(error)
+
+            "message":
+                str(error)
+
         }), 500
 
 
@@ -826,23 +1461,33 @@ def connect_camera():
     methods=["POST"]
 )
 def disconnect_camera():
+
     try:
+
         camera.disconnect()
 
         return jsonify({
+
             "success": True,
+
             "message":
                 "Camera disconnected."
         })
 
     except Exception as error:
+
         print(
-            f"Camera disconnect error: {error}"
+            f"Camera disconnect error: "
+            f"{error}"
         )
 
         return jsonify({
+
             "success": False,
-            "message": str(error)
+
+            "message":
+                str(error)
+
         }), 500
 
 
@@ -852,27 +1497,41 @@ def disconnect_camera():
 
 @app.route("/liveview")
 def liveview():
+
     def generate():
+
         while True:
-            frame = camera.get_liveview_frame()
+
+            frame = (
+                camera.get_liveview_frame()
+            )
 
             if frame is not None:
+
                 yield (
                     b"--frame\r\n"
                     b"Content-Type: image/jpeg\r\n"
                     b"Content-Length: "
-                    + str(len(frame)).encode()
+                    + str(
+                        len(frame)
+                    ).encode()
                     + b"\r\n\r\n"
                     + frame
                     + b"\r\n"
                 )
+
             else:
-                time.sleep(0.05)
+
+                time.sleep(
+                    0.05
+                )
 
     return Response(
         generate(),
-        mimetype=
-            "multipart/x-mixed-replace; boundary=frame"
+        mimetype=(
+            "multipart/x-mixed-replace; "
+            "boundary=frame"
+        )
     )
 
 
@@ -885,15 +1544,28 @@ def liveview():
     methods=["POST"]
 )
 def start_session():
+
     global session_active
     global session_photos
+    global latest_cloud_session
+
+    # Start collecting the exact camera files
+    # belonging to this session.
 
     session_active = True
+
     session_photos = []
 
+    # Clear previous digital-gallery information.
+
+    latest_cloud_session = None
+
     return jsonify({
+
         "success": True,
-        "message": "Session started."
+
+        "message":
+            "Session started."
     })
 
 
@@ -906,41 +1578,63 @@ def start_session():
     methods=["POST"]
 )
 def take_photo():
+
     global session_photos
 
     try:
-        filepath = camera.take_picture()
+
+        filepath = (
+            camera.take_picture()
+        )
 
         if session_active:
+
             session_photos.append(
                 filepath
             )
 
         print(
-            f"Photo added to session: {filepath}"
+            "Photo added to session: "
+            f"{filepath}"
+        )
+
+        print(
+            "Session photo count: "
+            f"{len(session_photos)}"
         )
 
         return jsonify({
+
             "success": True,
+
             "message":
                 "Photo taken successfully.",
+
             "filename":
-                filepath.name
+                filepath.name,
+
+            "photo_number":
+                len(session_photos)
         })
 
     except Exception as error:
+
         print(
             f"Photo error: {error}"
         )
 
         return jsonify({
+
             "success": False,
-            "message": str(error)
+
+            "message":
+                str(error)
+
         }), 500
 
 
 # ============================================================
-# CREATE COLLAGE
+# CREATE COLLAGE + DIGITAL GALLERY
 # ============================================================
 
 @app.route(
@@ -948,44 +1642,266 @@ def take_photo():
     methods=["POST"]
 )
 def make_collage_route():
+
     global latest_collage
+    global latest_cloud_session
+    global session_active
+
+    # --------------------------------------------------------
+    # REQUIRE EXACTLY THREE SESSION PHOTOS
+    # --------------------------------------------------------
 
     if len(session_photos) != 3:
+
         return jsonify({
+
             "success": False,
+
             "message":
                 "Need exactly 3 photos."
+
         }), 400
 
     try:
-        collage_path = make_collage(
-            session_photos
+
+        # ----------------------------------------------------
+        # CREATE LOCAL COLLAGE
+        # ----------------------------------------------------
+
+        collage_path = (
+            make_collage(
+                session_photos
+            )
         )
 
         latest_collage = Path(
             collage_path
         )
 
+        session_active = False
+
+        print()
         print(
-            f"Latest collage updated: "
-            f"{latest_collage}"
+            "=========================================="
         )
 
-        return jsonify({
-            "success": True,
+        print(
+            "LOCAL COLLAGE CREATED"
+        )
+
+        print(
+            "=========================================="
+        )
+
+        print(
+            latest_collage
+        )
+
+        # ----------------------------------------------------
+        # CLOUD UPLOAD
+        #
+        # Cloud failure intentionally does NOT make
+        # collage creation fail.
+        #
+        # Guests can still preview and print locally.
+        # ----------------------------------------------------
+
+        latest_cloud_session = None
+
+        cloud_error = None
+
+        try:
+
+            print()
+            print(
+                "Uploading PhotoBean session "
+                "to cloud..."
+            )
+
+            # IMPORTANT:
+            #
+            # We use session_photos directly.
+            #
+            # We do NOT search C:\Photobooth\Photos
+            # for recent files.
+            #
+            # This guarantees Photo 1/2/3 are the
+            # exact files captured in this session.
+
+            latest_cloud_session = (
+                upload_session(
+                    photo_paths=list(
+                        session_photos
+                    ),
+                    collage_path=(
+                        latest_collage
+                    )
+                )
+            )
+
+            print()
+            print(
+                "PhotoBean digital gallery ready:"
+            )
+
+            print(
+                latest_cloud_session[
+                    "gallery_url"
+                ]
+            )
+
+        except Exception as error:
+
+            cloud_error = str(
+                error
+            )
+
+            print()
+            print(
+                "=========================================="
+            )
+
+            print(
+                "CLOUD GALLERY WARNING"
+            )
+
+            print(
+                "=========================================="
+            )
+
+            print(
+                "The collage was created "
+                "successfully."
+            )
+
+            print(
+                "The digital gallery could "
+                "not be uploaded."
+            )
+
+            print(
+                cloud_error
+            )
+
+            print(
+                "Local preview and printing "
+                "will continue normally."
+            )
+
+        # ----------------------------------------------------
+        # RESPONSE TO MAIN.JS
+        # ----------------------------------------------------
+
+        response_data = {
+
+            "success":
+                True,
+
             "path":
-                str(latest_collage)
-        })
+                str(
+                    latest_collage
+                ),
+
+            "cloud_available":
+                (
+                    latest_cloud_session
+                    is not None
+                )
+        }
+
+        # ----------------------------------------------------
+        # CLOUD SUCCESS
+        # ----------------------------------------------------
+
+        if latest_cloud_session:
+
+            response_data[
+                "session_id"
+            ] = (
+                latest_cloud_session[
+                    "session_id"
+                ]
+            )
+
+            response_data[
+                "gallery_url"
+            ] = (
+                latest_cloud_session[
+                    "gallery_url"
+                ]
+            )
+
+        # ----------------------------------------------------
+        # CLOUD FAILURE
+        # ----------------------------------------------------
+
+        elif cloud_error:
+
+            response_data[
+                "cloud_error"
+            ] = (
+                cloud_error
+            )
+
+        return jsonify(
+            response_data
+        )
 
     except Exception as error:
+
+        session_active = False
+
+        print()
         print(
             f"Collage error: {error}"
         )
 
         return jsonify({
+
             "success": False,
-            "message": str(error)
+
+            "message":
+                str(error)
+
         }), 500
+
+
+# ============================================================
+# DIGITAL GALLERY STATUS
+# ============================================================
+
+@app.route("/gallery-status")
+def gallery_status():
+
+    if latest_cloud_session is None:
+
+        return jsonify({
+
+            "available":
+                False,
+
+            "gallery_url":
+                None,
+
+            "session_id":
+                None
+        })
+
+    return jsonify({
+
+        "available":
+            True,
+
+        "gallery_url":
+            latest_cloud_session[
+                "gallery_url"
+            ],
+
+        "session_id":
+            latest_cloud_session[
+                "session_id"
+            ]
+    })
 
 
 # ============================================================
@@ -994,13 +1910,24 @@ def make_collage_route():
 
 @app.route("/collage-status")
 def collage_status():
+
     ready = (
+
         latest_collage is not None
+
         and latest_collage.exists()
     )
 
     return jsonify({
-        "ready": ready
+
+        "ready":
+            ready,
+
+        "cloud_available":
+            (
+                latest_cloud_session
+                is not None
+            )
     })
 
 
@@ -1010,10 +1937,13 @@ def collage_status():
 
 @app.route("/collage-image")
 def collage_image():
+
     if latest_collage is None:
+
         return "", 404
 
     if not latest_collage.exists():
+
         return "", 404
 
     return send_file(
@@ -1026,27 +1956,71 @@ def collage_image():
 # PREVIEW LAST COLLAGE
 # ============================================================
 
-@app.route("/preview-last-collage")
+@app.route(
+    "/preview-last-collage"
+)
 def preview_last_collage():
+
     if latest_collage is None:
+
         return jsonify({
+
             "success": False,
+
             "message":
-                "No collage has been created yet."
+                "No collage has been "
+                "created yet."
+
         }), 404
 
     if not latest_collage.exists():
+
         return jsonify({
+
             "success": False,
+
             "message":
-                "The last collage file no longer exists."
+                "The last collage file "
+                "no longer exists."
+
         }), 404
 
-    return jsonify({
-        "success": True,
+    response_data = {
+
+        "success":
+            True,
+
         "filename":
-            latest_collage.name
-    })
+            latest_collage.name,
+
+        "cloud_available":
+            (
+                latest_cloud_session
+                is not None
+            )
+    }
+
+    if latest_cloud_session:
+
+        response_data[
+            "gallery_url"
+        ] = (
+            latest_cloud_session[
+                "gallery_url"
+            ]
+        )
+
+        response_data[
+            "session_id"
+        ] = (
+            latest_cloud_session[
+                "session_id"
+            ]
+        )
+
+    return jsonify(
+        response_data
+    )
 
 
 # ============================================================
@@ -1058,23 +2032,35 @@ def preview_last_collage():
     methods=["POST"]
 )
 def print_collage():
+
     if latest_collage is None:
+
         return jsonify({
+
             "success": False,
+
             "message":
-                "There is no collage to print."
+                "There is no collage "
+                "to print."
+
         }), 400
 
     if not latest_collage.exists():
+
         return jsonify({
+
             "success": False,
+
             "message":
-                "The collage file could not be found."
+                "The collage file could "
+                "not be found."
+
         }), 404
 
     try:
+
         print(
-            f"Sending collage to printer: "
+            "Sending collage to printer: "
             f"{latest_collage}"
         )
 
@@ -1083,19 +2069,26 @@ def print_collage():
         )
 
         return jsonify({
+
             "success": True,
+
             "message":
                 "Print job sent successfully."
         })
 
     except Exception as error:
+
         print(
             f"Printing error: {error}"
         )
 
         return jsonify({
+
             "success": False,
-            "message": str(error)
+
+            "message":
+                str(error)
+
         }), 500
 
 
@@ -1104,31 +2097,54 @@ def print_collage():
 # ============================================================
 
 if __name__ == "__main__":
+
     print()
+
     print(
         "=========================================="
     )
+
     print(
         "          PHOTOBOOTH WEB SERVER"
     )
+
     print(
         "=========================================="
     )
+
     print()
+
     print(
         "Main Photobooth:"
     )
+
     print(
         "http://localhost:5000"
     )
+
     print()
+
     print(
         "Design Studio:"
     )
+
     print(
         "http://localhost:5000/design"
     )
+
     print()
+
+    print(
+        "Cloud Gallery:"
+    )
+
+    print(
+        "https://photobean-gallery."
+        "stillmotionarch.workers.dev"
+    )
+
+    print()
+
     print(
         "=========================================="
     )
